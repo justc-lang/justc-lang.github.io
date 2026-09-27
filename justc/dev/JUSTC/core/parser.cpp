@@ -149,6 +149,9 @@ using namespace promise;
 #ifndef FUNCTION_PREFIX
 #define FUNCTION_PREFIX "__function_"
 #endif
+#ifndef FUNCTION_ID_NAME
+#define FUNCTION_ID_NAME "__function_id"
+#endif
 
 std::string Value::toString() const {
     std::string valname = isVariable ? variable : name;
@@ -226,6 +229,7 @@ std::string Value::toString() const {
             first = true;
             for (size_t i = 0; i < function_info.paramNames.size(); i++) {
                 std::string arg = function_info.paramNames[i];
+                if (native && arg == FUNCTION_ID_NAME) continue;
                 if (!first) args << ", ";
                 std::string td = dataTypeToTypeDecl(function_info.paramTypes[i]);
                 Value dv = function_info.defaultValues[i];
@@ -9262,7 +9266,7 @@ Value Parser::createFunction(std::function<Value(const std::vector<Value>&)> fun
     result.string_value = "[native code]";
     result.object_type = DataType::FUNCTION;
     result.native = true;
-    result.function_info.paramNames.push_back("__function_id");
+    result.function_info.paramNames.push_back(FUNCTION_ID_NAME);
     result.function_info.paramTypes.push_back(DataType::NUMBER);
     result.function_info.defaultValues.push_back(Value::createNumberWithType(id, NumericType::UINT64));
     
