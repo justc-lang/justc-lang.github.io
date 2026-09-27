@@ -948,6 +948,8 @@ private:
 
     size_t nextIndex;
 
+    bool hasWindow;
+
     // logs
     void addLog(const std::string& type, const std::string& message, size_t position = 0);
     void setLogFile(const std::string& path);

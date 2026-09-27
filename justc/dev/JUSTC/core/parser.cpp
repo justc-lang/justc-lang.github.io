@@ -823,7 +823,7 @@ Parser::Parser(
     strictMode(false), hasLogFile(false), allowLuau(allowLuau), canAllowLuau(canAllowLuau), doExecute(doExecute), runAsync(runAsync),
     canAllowJS(allowJavaScript ? true : canAllowJS), scriptName(scriptName), scriptType(scriptType), asJSON(false), isJSONArray(false),
     endOfScript("."), returnValue(DataType::UNKNOWN), isFunction(isFunction), chartype(chartype), currentScope(0), rootIndex(0),
-    parsertype(parsertype), nextStructConstructor(0), nextIndex(0), throwError(false)
+    parsertype(parsertype), nextStructConstructor(0), nextIndex(0), throwError(false), hasWindow(false)
 {
     initializeCPPTypes();
     initializeBuiltIns();
@@ -1745,6 +1745,15 @@ ParseResult Parser::parse(bool doExecute) {
     if (throwError && !result.error.empty()) {
         throw std::runtime_error(result.error);
     }
+
+    #ifndef __EMSCRIPTEN__
+        if (hasWindow) {
+            try {
+                JUSTCWindow::RunMessageLoop({});
+            } catch (...) {}
+            hasWindow = false;
+        }
+    #endif
 
     return result;
 }
@@ -4157,7 +4166,9 @@ Value Parser::executeFunction(const std::string& funcName, const std::vector<Val
         }
         if (funcName == "Window") {
             #ifndef __EMSCRIPTEN__
-                Value windowHandle = JUSTCWindow::Create(args, this);
+                hasWindow = true;
+                std::vector<Value> defArgs( {Value::createJsonObject({})} );
+                Value windowHandle = JUSTCWindow::Create(args.empty() ? defArgs : args, this);
                 std::unordered_map<std::string, Value> obj;
                 obj["_handle"] = windowHandle;
                 
