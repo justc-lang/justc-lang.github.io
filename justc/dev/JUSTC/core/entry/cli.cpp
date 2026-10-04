@@ -133,8 +133,12 @@ public:
     }
 };
 
+inline bool doPrint = true;
+
 void printLicense() {
-    std::cout << R"(
+    if (doPrint) {
+        doPrint = false;
+        std::cout << R"(
 
 MIT License
 
@@ -159,17 +163,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 )" << std::endl;
+    }
 }
 
 void printVersion() {
-    std::cout << "The JUSTC Programming Language v" << JUSTC_VERSION << std::endl;
-    std::cout << "Copyright (c) 2025-2026 JustStudio." << std::endl;
-    std::cout << "MIT License." << std::endl;
-    std::cout << "https://just.js.org/justc/" << std::endl;
+    if (doPrint) {
+        doPrint = false;
+        std::cout << "The JUSTC Programming Language v" << JUSTC_VERSION << std::endl;
+        std::cout << "Copyright (c) 2025-2026 JustStudio." << std::endl;
+        std::cout << "MIT License." << std::endl;
+        std::cout << "https://just.js.org/justc/" << std::endl;
+    }
 }
 
 void printUsage() {
-    std::cout << R"(
+    if (doPrint) {
+        doPrint = false;
+        std::cout << R"(
 
 The JUSTC Programming Language v)" << JUSTC_VERSION << R"(
 
@@ -286,6 +296,7 @@ Acknowledgements:
     for their excellent work, which made JUSTC possible.
 
 )" << std::endl;
+    }
 }
 
 std::string readFile(const std::string& filename) {

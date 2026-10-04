@@ -541,8 +541,6 @@ Value RunMessageLoop(const std::vector<Value>& args) {
 
 #endif
 
-// Общие функции преобразования (работают на всех платформах)
-
 Value windowInfoToValue(const WindowInfo& info) {
     std::unordered_map<std::string, Value> obj;
     obj["title"] = Value::createString(info.title);
