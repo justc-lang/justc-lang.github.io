@@ -42,8 +42,8 @@ struct CompressionResult {
 
 class JustbCompiler {
 public:
-    static bool compile(const ParseResult& result, const std::string& outputPath);
-    static bool compile(const ParseResult& result, std::ostream& out);
+    static bool compile(const ParseResult& result, const std::string& outputPath, bool noCompression = false);
+    static bool compile(const ParseResult& result, std::ostream& out, bool noCompression = false);
 
     static void setCompressionLevel(int level) { compressionLevel = std::max(1, std::min(9, level)); }
     static int getCompressionLevel() { return compressionLevel; }
@@ -70,5 +70,5 @@ private:
     static double minCompressionRatio;
 
     static CompressionResult tryCompression(const std::vector<uint8_t>& data, CompressionAlgorithm algorithm, int level = -1);
-    static CompressionResult selectBestCompression(const std::vector<uint8_t>& data);
+    static CompressionResult selectBestCompression(const std::vector<uint8_t>& data, bool noCompression = false);
 };

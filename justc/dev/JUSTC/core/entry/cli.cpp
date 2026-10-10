@@ -213,6 +213,7 @@ Options:
   --disallow-luau                       Disallow Luau
   -h, --help                            Print JUSTC command line options
   --license                             Print JUSTC license
+  --no-compression                      Disable compiler output compression
   -p, --print                           Print the result
   --raw-version                         Print JUSTC version in "x.y.z" format
   -s, --silent                          Suppress all logs except errors
@@ -328,6 +329,8 @@ struct CommandLineFlags {
     bool allowJS = true;
     bool allowLuau = true;
 
+    bool noCompression = false;
+
     bool hasInp = false;
 
     std::string command;
@@ -414,6 +417,9 @@ CommandLineFlags parseArguments(int argc, char* argv[]) {
             ++i;
         } else if (arg == "--disallow-luau") {
             flags.allowLuau = false;
+            ++i;
+        } else if (arg == "--no-compression") {
+            flags.noCompression = true;
             ++i;
         } else if (arg[0] == '-') {
             throwError("Unknown option: " + arg);

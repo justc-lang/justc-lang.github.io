@@ -444,6 +444,7 @@ struct FunctionInfo {
     std::vector<std::string> paramNames;
     std::vector<DataType> paramTypes;
     std::vector<struct Value> defaultValues;
+    std::vector<ParserToken> tokens;
     bool hasVarArgs;
     bool isIsolated;
 
@@ -467,7 +468,7 @@ struct FunctionInfo {
         }
         
         archive(
-            code,
+            tokens,
             paramNames,
             defaultValues,
             hasVarArgs,
@@ -660,7 +661,10 @@ struct Value {
                 break;
             case DataType::FUNCTION:
             case DataType::STRUCT:
-                archive(name, string_value, function_info);
+                archive(name, function_info);
+                if (Archive::is_loading::value) {
+                    string_value = "[compiled code]";
+                }
                 break;
             case DataType::BINARY_DATA:
                 archive(binary_data);
@@ -1072,8 +1076,8 @@ private:
         }
     }
 
-    Value isolated(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context = nullptr, const std::string name = "auto", bool merge = false, bool silent = false, const ParserType ptype = ParserType::SCRIPT);
-    Value shared(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context, const std::string name = "auto", bool merge = true, bool silent = false, const ParserType ptype = ParserType::SCRIPT);
+    Value isolated(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context = nullptr, const std::string name = "auto", bool merge = false, bool silent = false, const ParserType ptype = ParserType::SCRIPT, const std::vector<ParserToken> ptokens = {});
+    Value shared(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context, const std::string name = "auto", bool merge = true, bool silent = false, const ParserType ptype = ParserType::SCRIPT, const std::vector<ParserToken> ptokens = {});
 
     Value parseFunctionDeclaration(bool doExecute, std::string funcName = "anonymous", bool requireName = true);
     Value emptyJUSTC();

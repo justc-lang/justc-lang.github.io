@@ -279,8 +279,8 @@ CompressionResult JustbCompiler::tryCompression(const std::vector<uint8_t>& data
     return result;
 }
 
-CompressionResult JustbCompiler::selectBestCompression(const std::vector<uint8_t>& data) {
-    if (!autoSelect || data.empty()) {
+CompressionResult JustbCompiler::selectBestCompression(const std::vector<uint8_t>& data, bool noCompression) {
+    if (!autoSelect || data.empty() || noCompression) {
         return tryCompression(data, CompressionAlgorithm::NONE);
     }
 
@@ -318,13 +318,13 @@ CompressionResult JustbCompiler::selectBestCompression(const std::vector<uint8_t
     return best;
 }
 
-bool JustbCompiler::compile(const ParseResult& result, const std::string& outputPath) {
+bool JustbCompiler::compile(const ParseResult& result, const std::string& outputPath, bool noCompression) {
     std::ofstream out(outputPath, std::ios::binary);
     if (!out) return false;
-    return compile(result, out);
+    return compile(result, out, noCompression);
 }
 
-bool JustbCompiler::compile(const ParseResult& result, std::ostream& out) {
+bool JustbCompiler::compile(const ParseResult& result, std::ostream& out, bool noCompression) {
     try {
         std::stringstream buffer(std::ios::binary | std::ios::in | std::ios::out);
         {
@@ -337,9 +337,9 @@ bool JustbCompiler::compile(const ParseResult& result, std::ostream& out) {
         
         CompressionResult compressed;
         if (autoSelect) {
-            compressed = selectBestCompression(data);
+            compressed = selectBestCompression(data, noCompression);
         } else {
-            compressed = tryCompression(data, CompressionAlgorithm::ZLIB);
+            compressed = tryCompression(data, CompressionAlgorithm::NONE);
         }
         
         uint8_t compressionType = static_cast<uint8_t>(compressed.algorithm);

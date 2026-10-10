@@ -6674,9 +6674,19 @@ Value Parser::merger(const std::vector<Value>& args) {
     variables[key] = value;
     return Value::createNull();
 }
-Value Parser::isolated(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context, const std::string name, bool merge, bool silent, ParserType ptype) {
+Value Parser::isolated(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context, const std::string name, bool merge, bool silent, ParserType ptype, const std::vector<ParserToken> ptokens) {
     try {
-        auto lexerResult = Lexer::parse(code);
+        std::vector<ParserToken> inputT;
+        bool useInput = false;
+        if (ptokens.size() > 0) {
+            inputT.reserve(ptokens.size());
+            inputT.insert(inputT.begin(), ptokens.begin(), ptokens.end());
+            useInput = true;
+        } else {
+            auto lexerResult = Lexer::parse(code);
+            inputT.reserve(lexerResult.second.size());
+            inputT.insert(inputT.begin(), lexerResult.second.begin(), lexerResult.second.end());
+        }
 
         std::string currName = "function";
         bool isFunction = true;
@@ -6689,10 +6699,10 @@ Value Parser::isolated(const std::string& code, bool doExecute, size_t startPos,
         }
 
         Parser isolatedParser(
-            lexerResult.second,
+            inputT,
             doExecute && this->doExecute,
             this->runAsync,
-            code,
+            useInput ? input : code,
             this->allowJavaScript,
             this->canAllowJS,
             this->scriptName + "::" + currName,
@@ -6820,13 +6830,13 @@ Value Parser::isolated(const std::string& code, bool doExecute, size_t startPos,
         throw std::runtime_error(std::string(e.what()) + " (at \"" + this->scriptName + "\" " + Utility::position(startPos, input) + ")");
     }
 }
-Value Parser::shared(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context, const std::string name, bool merge, bool silent, ParserType ptype) {
+Value Parser::shared(const std::string& code, bool doExecute, size_t startPos, const std::unordered_map<std::string, Value>* context, const std::string name, bool merge, bool silent, ParserType ptype, const std::vector<ParserToken> ptokens) {
     std::unordered_map<std::string, Value> ctx;
     if (context) {
         ctx = *context;
     }
 
-    Value result = isolated(code, doExecute, startPos, &ctx, name, merge, silent, ptype);
+    Value result = isolated(code, doExecute, startPos, &ctx, name, merge, silent, ptype, ptokens);
 
     if (merge) {
         for (const auto& [key, value] : ctx) {
@@ -7334,6 +7344,7 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
         else if (match("}")) braceCount--;
 
         if (braceCount > 0) {
+            funcInfo.tokens.push_back(currentToken());
             body << t2i(currentToken());
         }
         advance();
@@ -7384,7 +7395,7 @@ Value Parser::callFunction(const Value& function, const std::vector<Value>& args
         }
     }
 
-    if (!function.function_info.isIsolated) {
+    if (!funcInfo.isIsolated) {
         for (const auto& [key, value] : this->variables) {
             try {
                 functionContext[key] = resolveVariableValue(key, false);
@@ -7431,7 +7442,7 @@ Value Parser::callFunction(const Value& function, const std::vector<Value>& args
             break;
         default: break;
     }
-    Value result = isolated(function.string_value, true, startPos, &functionContext, "auto", false, false, ptype);
+    Value result = isolated(funcInfo.tokens.size() > 0 ? "" : function.string_value, true, startPos, &functionContext, "auto", false, false, ptype, funcInfo.tokens);
 
     if (!result.properties.empty()) {
         auto it = result.properties.find("return");
@@ -8890,6 +8901,7 @@ Value Parser::parseStructDeclaration(bool doExecute, std::string structName, boo
         else if (match("}")) braceCount--;
 
         if (braceCount > 0) {
+            result.function_info.tokens.push_back(currentToken());
             body << t2i(currentToken());
         }
         advance();

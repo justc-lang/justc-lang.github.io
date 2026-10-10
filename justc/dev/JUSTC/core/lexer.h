@@ -43,6 +43,15 @@ struct ParserToken {
     ParserToken() : type(""), value(""), start(0) {}
     ParserToken(const std::string& t, const std::string& v, size_t s)
         : type(t), value(v), start(s) {}
+
+    template <class Archive>
+    void serialize(Archive& archive) {
+        archive(type);
+        archive(value);
+        int startInt = static_cast<int>(start);
+        archive(startInt);
+        start = static_cast<size_t>(startInt);
+    }
 };
 
 class Lexer {
