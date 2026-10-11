@@ -44,7 +44,46 @@ SOFTWARE.
 #include "../loader/justb.hpp"
 #include "../justb.hpp"
 
+#ifdef _MSC_VER
+    #include <windows.h>
+
+    bool cmd() {
+        DWORD processIds[2];
+        DWORD count = GetConsoleProcessList(processIds, 2);
+        
+        return count > 1;
+    }
+
+    void app() {
+        std::string code = R"(
+local Window window;
+)";
+        auto lexerResult = lexer(code);
+        ParseResult result = Parser::parseTokens(lexerResult.second, true, false, code, true, true, "<app>", "script", true, true);
+
+        if (!result.error.empty()) {
+            throwError(result.error);
+        }
+    }
+#endif
+
+inline bool doErrorWindow = false;
+
 void logError(const std::string& error) {
+    #ifdef _MSC_VER
+    if (!cmd() || doErrorWindow) {
+        int size_needed = MultiByteToWideChar(CP_UTF8, 0, error.c_str(), (int)error.length(), NULL, 0);
+        std::wstring wMessage(size_needed, 0);
+        MultiByteToWideChar(CP_UTF8, 0, error.c_str(), (int)error.length(), &wMessage[0], size_needed);
+
+        MessageBoxW(
+            NULL,
+            wMessage.c_str(),
+            L"JUSTC",
+            MB_OK | MB_ICONERROR | MB_TOPMOST
+        );
+    } else
+    #endif
     if (Utility::isGitHubActions()) {
         std::cerr << "::error::" << error << std::endl;
     } else {
@@ -211,6 +250,7 @@ Options:
   -c, --check                           Validate JUSTC/JUSTO/JUSTB input
   --disallow-javascript                 Disallow JavaScript
   --disallow-luau                       Disallow Luau
+  --error-messagebox                    Show MessageBox on error (Windows)
   -h, --help                            Print JUSTC command line options
   --license                             Print JUSTC license
   --no-compression                      Disable compiler output compression
@@ -421,6 +461,9 @@ CommandLineFlags parseArguments(int argc, char* argv[]) {
         } else if (arg == "--no-compression") {
             flags.noCompression = true;
             ++i;
+        } else if (arg == "--error-messagebox") {
+            doErrorWindow = true;
+            ++i;
         } else if (arg[0] == '-') {
             throwError("Unknown option: " + arg);
         } else {
@@ -538,7 +581,7 @@ void handleCompileJustb(const CommandLineFlags& flags) {
     }
 
     std::stringstream ss;
-    if (!JustbCompiler::compile(result, ss)) {
+    if (!JustbCompiler::compile(result, ss, flags.noCompression)) {
         throwError("Failed to compile to JUSTB");
     }
 
@@ -631,29 +674,6 @@ void handleJsonToJusto(const CommandLineFlags& flags) {
     }
 }
 
-#ifdef _MSC_VER
-    #include <windows.h>
-
-    bool cmd() {
-        DWORD processIds[2];
-        DWORD count = GetConsoleProcessList(processIds, 2);
-        
-        return count > 1;
-    }
-
-    void app() {
-        std::string code = R"(
-local Window window;
-)";
-        auto lexerResult = lexer(code);
-        ParseResult result = Parser::parseTokens(lexerResult.second, true, false, code, true, true, "<app>", "script", true, true);
-
-        if (!result.error.empty()) {
-            throwError(result.error);
-        }
-    }
-#endif
-
 int main(int argc, char* argv[]) {
     setupGlobalExceptionHandler();
     OutputRedirector* outputRedirector = nullptr;
@@ -665,6 +685,7 @@ int main(int argc, char* argv[]) {
                 if (hWnd != nullptr) {
                     ShowWindow(hWnd, SW_HIDE); 
                 }
+                FreeConsole();
 
                 app();
                 return 0;
