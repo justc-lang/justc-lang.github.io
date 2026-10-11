@@ -611,7 +611,7 @@ void handleJsonToJustc(const CommandLineFlags& flags) {
     }
 }
 
-void handelJsonToJusto(const CommandLineFlags& flags) {
+void handleJsonToJusto(const CommandLineFlags& flags) {
     if (flags.input.empty()) {
         throwError("No input file specified for JSON to JUSTO conversion");
     }
@@ -631,11 +631,41 @@ void handelJsonToJusto(const CommandLineFlags& flags) {
     }
 }
 
+#ifdef _MSC_VER
+    #include <windows.h>
+
+    bool cmd() {
+        DWORD processIds[2];
+        DWORD count = GetConsoleProcessList(processIds, 2);
+        
+        return count > 1;
+    }
+
+    void app() {
+        std::string code = R"(
+local Window window;
+)";
+        auto lexerResult = lexer(code);
+        ParseResult result = Parser::parseTokens(lexerResult.second, true, false, code, true, true, "<app>", "script", true, true);
+
+        if (!result.error.empty()) {
+            throwError(result.error);
+        }
+    }
+#endif
+
 int main(int argc, char* argv[]) {
     setupGlobalExceptionHandler();
     OutputRedirector* outputRedirector = nullptr;
 
     try {
+        #ifdef _MSC_VER
+            if (!cmd()) {
+                app();
+                return 0;
+            }
+        #endif
+
         CommandLineFlags flags = parseArguments(argc, argv);
 
         if (flags.silent) {
@@ -676,7 +706,7 @@ int main(int argc, char* argv[]) {
         } else if (flags.command == "json->justc") {
             handleJsonToJustc(flags);
         } else if (flags.command == "json->justo") {
-            handelJsonToJusto(flags);
+            handleJsonToJusto(flags);
         } else if (
             flags.command == "justc->json" ||
             flags.command == "justc->justo" ||
