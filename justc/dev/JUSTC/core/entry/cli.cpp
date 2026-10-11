@@ -53,18 +53,6 @@ SOFTWARE.
         
         return count > 1;
     }
-
-    void app() {
-        std::string code = R"(
-local Window window;
-)";
-        auto lexerResult = lexer(code);
-        ParseResult result = Parser::parseTokens(lexerResult.second, true, false, code, true, true, "<app>", "script", true, true);
-
-        if (!result.error.empty()) {
-            throwError(result.error);
-        }
-    }
 #endif
 
 inline bool doErrorWindow = false;
@@ -673,6 +661,20 @@ void handleJsonToJusto(const CommandLineFlags& flags) {
         std::cout << justo << std::endl;
     }
 }
+
+#ifdef _MSC_VER
+    void app() {
+        std::string code = R"(
+local Window window;
+)";
+        auto lexerResult = lexer(code);
+        ParseResult result = Parser::parseTokens(lexerResult.second, true, false, code, true, true, "<app>", "script", true, true);
+
+        if (!result.error.empty()) {
+            throwError(result.error);
+        }
+    }
+#endif
 
 int main(int argc, char* argv[]) {
     setupGlobalExceptionHandler();
