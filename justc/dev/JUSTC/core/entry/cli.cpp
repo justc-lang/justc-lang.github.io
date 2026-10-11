@@ -661,6 +661,11 @@ int main(int argc, char* argv[]) {
     try {
         #ifdef _MSC_VER
             if (!cmd()) {
+                HWND hWnd = GetConsoleWindow();
+                if (hWnd != nullptr) {
+                    ShowWindow(hWnd, SW_HIDE); 
+                }
+
                 app();
                 return 0;
             }
