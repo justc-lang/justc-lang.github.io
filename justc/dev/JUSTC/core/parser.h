@@ -41,10 +41,12 @@ SOFTWARE.
 #include <cstring>
 #include <iomanip>
 #include <limits>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/unordered_map.hpp>
-#include <cereal/types/memory.hpp>
+#ifndef JUSTC_NOCEREAL
+    #include <cereal/types/vector.hpp>
+    #include <cereal/types/string.hpp>
+    #include <cereal/types/unordered_map.hpp>
+    #include <cereal/types/memory.hpp>
+#endif
 #include <optional>
 
 #ifdef _MSC_VER
@@ -361,82 +363,84 @@ struct NumericValue {
         }
     }
 
-    template <class Archive>
-    void serialize(Archive& archive) {
-        int typeInt = static_cast<int>(type);
-        archive(typeInt);
-        type = static_cast<NumericType>(typeInt);
-        
-        archive(value);
-        
-        if (Archive::is_loading::value) {
-            if (data) {
-                free(data);
-                data = nullptr;
-            }
-            size_t size = getTypeSize(type);
-            data = malloc(size);
-            if (data) {
-                switch (type) {
-                    case NumericType::FLOAT32:
-                        *(float*)data = static_cast<float>(value);
-                        break;
-                    case NumericType::FLOAT64:
-                        *(double*)data = value;
-                        break;
-                    case NumericType::BIGNUM:
-                        *(long double*)data = static_cast<long double>(value);
-                        break;
-                    #if JUSTC_HAS_FLOAT128
-                    case NumericType::FLOAT128:
-                        *(__float128*)data = static_cast<__float128>(value);
-                        break;
-                    #endif
-                    case NumericType::INT8:
-                        *(int8_t*)data = static_cast<int8_t>(value);
-                        break;
-                    case NumericType::INT16:
-                        *(int16_t*)data = static_cast<int16_t>(value);
-                        break;
-                    case NumericType::INT32:
-                        *(int32_t*)data = static_cast<int32_t>(value);
-                        break;
-                    case NumericType::INT64:
-                        *(int64_t*)data = static_cast<int64_t>(value);
-                        break;
-                    #if JUSTC_HAS_INT128
-                    case NumericType::INT128:
-                        *(__int128*)data = static_cast<__int128>(value);
-                        break;
-                    #endif
-                    #if JUSTC_HAS_UINT128
-                    case NumericType::UINT128:
-                        *(unsigned __int128*)data = static_cast<unsigned __int128>(value);
-                        break;
-                    #endif
-                    case NumericType::UINT8:
-                    case NumericType::CUINT8:
-                        *(uint8_t*)data = static_cast<uint8_t>(value);
-                        break;
-                    case NumericType::UINT16:
-                    case NumericType::CUINT16:
-                        *(uint16_t*)data = static_cast<uint16_t>(value);
-                        break;
-                    case NumericType::UINT32:
-                    case NumericType::CUINT32:
-                        *(uint32_t*)data = static_cast<uint32_t>(value);
-                        break;
-                    case NumericType::UINT64:
-                    case NumericType::CUINT64:
-                        *(uint64_t*)data = static_cast<uint64_t>(value);
-                        break;
-                    default:
-                        *(double*)data = value;
-                        break;
+    #ifndef JUSTC_NOCEREAL
+        template <class Archive>
+        void serialize(Archive& archive) {
+            int typeInt = static_cast<int>(type);
+            archive(typeInt);
+            type = static_cast<NumericType>(typeInt);
+            
+            archive(value);
+            
+            if (Archive::is_loading::value) {
+                if (data) {
+                    free(data);
+                    data = nullptr;
+                }
+                size_t size = getTypeSize(type);
+                data = malloc(size);
+                if (data) {
+                    switch (type) {
+                        case NumericType::FLOAT32:
+                            *(float*)data = static_cast<float>(value);
+                            break;
+                        case NumericType::FLOAT64:
+                            *(double*)data = value;
+                            break;
+                        case NumericType::BIGNUM:
+                            *(long double*)data = static_cast<long double>(value);
+                            break;
+                        #if JUSTC_HAS_FLOAT128
+                        case NumericType::FLOAT128:
+                            *(__float128*)data = static_cast<__float128>(value);
+                            break;
+                        #endif
+                        case NumericType::INT8:
+                            *(int8_t*)data = static_cast<int8_t>(value);
+                            break;
+                        case NumericType::INT16:
+                            *(int16_t*)data = static_cast<int16_t>(value);
+                            break;
+                        case NumericType::INT32:
+                            *(int32_t*)data = static_cast<int32_t>(value);
+                            break;
+                        case NumericType::INT64:
+                            *(int64_t*)data = static_cast<int64_t>(value);
+                            break;
+                        #if JUSTC_HAS_INT128
+                        case NumericType::INT128:
+                            *(__int128*)data = static_cast<__int128>(value);
+                            break;
+                        #endif
+                        #if JUSTC_HAS_UINT128
+                        case NumericType::UINT128:
+                            *(unsigned __int128*)data = static_cast<unsigned __int128>(value);
+                            break;
+                        #endif
+                        case NumericType::UINT8:
+                        case NumericType::CUINT8:
+                            *(uint8_t*)data = static_cast<uint8_t>(value);
+                            break;
+                        case NumericType::UINT16:
+                        case NumericType::CUINT16:
+                            *(uint16_t*)data = static_cast<uint16_t>(value);
+                            break;
+                        case NumericType::UINT32:
+                        case NumericType::CUINT32:
+                            *(uint32_t*)data = static_cast<uint32_t>(value);
+                            break;
+                        case NumericType::UINT64:
+                        case NumericType::CUINT64:
+                            *(uint64_t*)data = static_cast<uint64_t>(value);
+                            break;
+                        default:
+                            *(double*)data = value;
+                            break;
+                    }
                 }
             }
         }
-    }
+    #endif
 };
 
 struct FunctionInfo {
@@ -450,31 +454,33 @@ struct FunctionInfo {
 
     FunctionInfo() : hasVarArgs(false), isIsolated(false) {}
 
-    template <class Archive>
-    void serialize(Archive& archive) {
-        std::vector<int> paramTypesInt;
-        if (Archive::is_loading::value) {
-            archive(paramTypesInt);
-            paramTypes.resize(paramTypesInt.size());
-            for (size_t i = 0; i < paramTypesInt.size(); ++i) {
-                paramTypes[i] = static_cast<DataType>(paramTypesInt[i]);
+    #ifndef JUSTC_NOCEREAL
+        template <class Archive>
+        void serialize(Archive& archive) {
+            std::vector<int> paramTypesInt;
+            if (Archive::is_loading::value) {
+                archive(paramTypesInt);
+                paramTypes.resize(paramTypesInt.size());
+                for (size_t i = 0; i < paramTypesInt.size(); ++i) {
+                    paramTypes[i] = static_cast<DataType>(paramTypesInt[i]);
+                }
+            } else {
+                paramTypesInt.resize(paramTypes.size());
+                for (size_t i = 0; i < paramTypes.size(); ++i) {
+                    paramTypesInt[i] = static_cast<int>(paramTypes[i]);
+                }
+                archive(paramTypesInt);
             }
-        } else {
-            paramTypesInt.resize(paramTypes.size());
-            for (size_t i = 0; i < paramTypes.size(); ++i) {
-                paramTypesInt[i] = static_cast<int>(paramTypes[i]);
-            }
-            archive(paramTypesInt);
+            
+            archive(
+                tokens,
+                paramNames,
+                defaultValues,
+                hasVarArgs,
+                isIsolated
+            );
         }
-        
-        archive(
-            tokens,
-            paramNames,
-            defaultValues,
-            hasVarArgs,
-            isIsolated
-        );
-    }
+    #endif
 };
 
 enum class VariableType : uint8_t {
@@ -622,75 +628,77 @@ struct Value {
         return *ptr;
     }
 
-    template <class Archive>
-    void serialize(Archive& archive) {
-        int typeInt = static_cast<int>(type);
-        archive(typeInt);
-        type = static_cast<DataType>(typeInt);
-        archive(cpptype);
+    #ifndef JUSTC_NOCEREAL
+        template <class Archive>
+        void serialize(Archive& archive) {
+            int typeInt = static_cast<int>(type);
+            archive(typeInt);
+            type = static_cast<DataType>(typeInt);
+            archive(cpptype);
 
-        switch (type) {
-            case DataType::NUMBER:
-            case DataType::HEXADECIMAL:
-            case DataType::BINARY:
-            case DataType::OCTAL: {
-                bool hasNumericData = static_cast<bool>(numeric_data);
-                archive(hasNumericData);
-                if (hasNumericData) {
-                    archive(*numeric_data);
-                } else {
-                    archive(number_value);
+            switch (type) {
+                case DataType::NUMBER:
+                case DataType::HEXADECIMAL:
+                case DataType::BINARY:
+                case DataType::OCTAL: {
+                    bool hasNumericData = static_cast<bool>(numeric_data);
+                    archive(hasNumericData);
+                    if (hasNumericData) {
+                        archive(*numeric_data);
+                    } else {
+                        archive(number_value);
+                    }
+                    break;
                 }
-                break;
+                case DataType::STRING:
+                case DataType::LINK:
+                case DataType::PATH:
+                case DataType::VARIABLE:
+                    archive(string_value);
+                    break;
+                case DataType::BOOLEAN:
+                    archive(boolean_value);
+                    break;
+                case DataType::JSON_OBJECT:
+                case DataType::JUSTC_OBJECT:
+                    archive(properties);
+                    break;
+                case DataType::JSON_ARRAY:
+                    archive(array_elements);
+                    break;
+                case DataType::FUNCTION:
+                case DataType::STRUCT:
+                    archive(name, function_info);
+                    if (Archive::is_loading::value) {
+                        string_value = "[compiled code]";
+                    }
+                    break;
+                case DataType::BINARY_DATA:
+                    archive(binary_data);
+                    break;
+                case DataType::MAP:
+                case DataType::SET:
+                case DataType::INT8_ARRAY:
+                case DataType::INT16_ARRAY:
+                case DataType::INT32_ARRAY:
+                case DataType::INT64_ARRAY:
+                case DataType::UINT8_ARRAY:
+                case DataType::UINT16_ARRAY:
+                case DataType::UINT32_ARRAY:
+                case DataType::UINT64_ARRAY:
+                case DataType::CUINT8_ARRAY:
+                case DataType::CUINT16_ARRAY:
+                case DataType::CUINT32_ARRAY:
+                case DataType::CUINT64_ARRAY:
+                case DataType::FLOAT32_ARRAY:
+                case DataType::FLOAT64_ARRAY:
+                    //archive(*complex_value);
+                    break;
+                default:
+                    break;
             }
-            case DataType::STRING:
-            case DataType::LINK:
-            case DataType::PATH:
-            case DataType::VARIABLE:
-                archive(string_value);
-                break;
-            case DataType::BOOLEAN:
-                archive(boolean_value);
-                break;
-            case DataType::JSON_OBJECT:
-            case DataType::JUSTC_OBJECT:
-                archive(properties);
-                break;
-            case DataType::JSON_ARRAY:
-                archive(array_elements);
-                break;
-            case DataType::FUNCTION:
-            case DataType::STRUCT:
-                archive(name, function_info);
-                if (Archive::is_loading::value) {
-                    string_value = "[compiled code]";
-                }
-                break;
-            case DataType::BINARY_DATA:
-                archive(binary_data);
-                break;
-            case DataType::MAP:
-            case DataType::SET:
-            case DataType::INT8_ARRAY:
-            case DataType::INT16_ARRAY:
-            case DataType::INT32_ARRAY:
-            case DataType::INT64_ARRAY:
-            case DataType::UINT8_ARRAY:
-            case DataType::UINT16_ARRAY:
-            case DataType::UINT32_ARRAY:
-            case DataType::UINT64_ARRAY:
-            case DataType::CUINT8_ARRAY:
-            case DataType::CUINT16_ARRAY:
-            case DataType::CUINT32_ARRAY:
-            case DataType::CUINT64_ARRAY:
-            case DataType::FLOAT32_ARRAY:
-            case DataType::FLOAT64_ARRAY:
-                //archive(*complex_value);
-                break;
-            default:
-                break;
         }
-    }
+    #endif
 
     bool operator==(const Value& other) const;
     bool operator!=(const Value& other) const;
@@ -712,13 +720,15 @@ struct Value::Property {
     Property() : value(Value::createNull()) {}
     Property(const Value& val, const Access& acs): value(val), access(acs) {}
 
-    template <class Archive>
-    void serialize(Archive& archive) {
-        int accessInt = static_cast<int>(access);
-        archive(accessInt);
-        access = static_cast<Access>(accessInt);
-        archive(value);
-    }
+    #ifndef JUSTC_NOCEREAL
+        template <class Archive>
+        void serialize(Archive& archive) {
+            int accessInt = static_cast<int>(access);
+            archive(accessInt);
+            access = static_cast<Access>(accessInt);
+            archive(value);
+        }
+    #endif
 };
 inline Value::Property* Value::getProperty(const std::string& name) {
     if (properties.find(name) != properties.end()) {

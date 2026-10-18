@@ -26,7 +26,7 @@ SOFTWARE.
 
 /*
 
-Just an Ultimate Site Tool Configuration language v0.3.0 (dev)
+The JUSTC Programming Language v0.3.0 (dev)
 
 */
 

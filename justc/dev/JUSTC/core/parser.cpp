@@ -85,6 +85,26 @@ SOFTWARE.
     #define JUSTC_UINT128_SUPPORT 0
 #endif
 
+#ifdef JUSTC_NOCEREAL
+    #define JUSTC_JUSTB_SUPPORT 0
+    #ifdef JUSTC_NOLUAU
+        #define JUSTC_LUAU_SUPPORT 0
+        #define JUSTC_BUILD_TYPE 3.0
+    #else
+        #define JUSTC_LUAU_SUPPORT 1
+        #define JUSTC_BUILD_TYPE 2.0
+    #endif
+#else
+    #define JUSTC_JUSTB_SUPPORT 1
+    #ifdef JUSTC_NOLUAU
+        #define JUSTC_LUAU_SUPPORT 0
+        #define JUSTC_BUILD_TYPE 1.0
+    #else
+        #define JUSTC_LUAU_SUPPORT 1
+        #define JUSTC_BUILD_TYPE 0.0
+    #endif
+#endif
+
 #ifdef __EMSCRIPTEN__
     #include "parser.emscripten.h"
     #include <emscripten.h>
@@ -1158,6 +1178,7 @@ Parser::Parser(
     justcProperties["stringify"] = builtinObjectFunction("JUSTC.stringify");
     justcProperties["parser"] = builtinObjectFunction("JUSTC.parser");
     justcProperties["lexer"] = builtinObjectFunction("JUSTC.lexer");
+    justcProperties["type"] = Value::createNumber(JUSTC_BUILD_TYPE);
     builtinObject("JUSTC", justcProperties);
 
     std::unordered_map<std::string, Value> jsonProperties;
@@ -1292,6 +1313,8 @@ Parser::Parser(
     scriptProperties["int128"] = booleanToValue(JUSTC_INT128_SUPPORT);
     scriptProperties["uint128"] = booleanToValue(JUSTC_UINT128_SUPPORT);
     scriptProperties["float128"] = booleanToValue(JUSTC_FLOAT128_SUPPORT);
+    scriptProperties["Luau"] = booleanToValue(JUSTC_LUAU_SUPPORT);
+    scriptProperties["JUSTB"] = booleanToValue(JUSTC_JUSTB_SUPPORT);
     builtinObject("script", scriptProperties);
 
     Value chartypeValue;

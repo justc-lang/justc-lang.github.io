@@ -44,14 +44,16 @@ struct ParserToken {
     ParserToken(const std::string& t, const std::string& v, size_t s)
         : type(t), value(v), start(s) {}
 
-    template <class Archive>
-    void serialize(Archive& archive) {
-        archive(type);
-        archive(value);
-        int startInt = static_cast<int>(start);
-        archive(startInt);
-        start = static_cast<size_t>(startInt);
-    }
+    #ifndef JUSTC_NOCEREAL
+        template <class Archive>
+        void serialize(Archive& archive) {
+            archive(type);
+            archive(value);
+            int startInt = static_cast<int>(start);
+            archive(startInt);
+            start = static_cast<size_t>(startInt);
+        }
+    #endif
 };
 
 class Lexer {

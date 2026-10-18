@@ -26,11 +26,13 @@ SOFTWARE.
 
 #include "justb.hpp"
 #include "../justb.hpp"
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/unordered_map.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/memory.hpp>
+#ifndef JUSTC_NOCEREAL
+    #include <cereal/archives/binary.hpp>
+    #include <cereal/types/unordered_map.hpp>
+    #include <cereal/types/string.hpp>
+    #include <cereal/types/vector.hpp>
+    #include <cereal/types/memory.hpp>
+#endif
 #include <sstream>
 #include <algorithm>
 #include <zlib.h>
@@ -325,37 +327,41 @@ bool JustbCompiler::compile(const ParseResult& result, const std::string& output
 }
 
 bool JustbCompiler::compile(const ParseResult& result, std::ostream& out, bool noCompression) {
-    try {
-        std::stringstream buffer(std::ios::binary | std::ios::in | std::ios::out);
-        {
-            cereal::BinaryOutputArchive archive(buffer);
-            archive(result.returnValues);
-        }
-        
-        std::string bufferStr = buffer.str();
-        std::vector<uint8_t> data(bufferStr.begin(), bufferStr.end());
-        
-        CompressionResult compressed;
-        if (autoSelect) {
-            compressed = selectBestCompression(data, noCompression);
-        } else {
-            compressed = tryCompression(data, CompressionAlgorithm::NONE);
-        }
-        
-        uint8_t compressionType = static_cast<uint8_t>(compressed.algorithm);
-        if (!JUSTB::writeHeader(out, JUSTC_VERSION, compressionType, 0)) {
+    #ifndef JUSTC_NOCEREAL
+        try {
+            std::stringstream buffer(std::ios::binary | std::ios::in | std::ios::out);
+            {
+                cereal::BinaryOutputArchive archive(buffer);
+                archive(result.returnValues);
+            }
+            
+            std::string bufferStr = buffer.str();
+            std::vector<uint8_t> data(bufferStr.begin(), bufferStr.end());
+            
+            CompressionResult compressed;
+            if (autoSelect) {
+                compressed = selectBestCompression(data, noCompression);
+            } else {
+                compressed = tryCompression(data, CompressionAlgorithm::NONE);
+            }
+            
+            uint8_t compressionType = static_cast<uint8_t>(compressed.algorithm);
+            if (!JUSTB::writeHeader(out, JUSTC_VERSION, compressionType, 0)) {
+                return false;
+            }
+            
+            uint64_t originalSize = data.size();
+            out.write(reinterpret_cast<const char*>(&originalSize), sizeof(originalSize));
+            out.write(reinterpret_cast<const char*>(compressed.data.data()), compressed.data.size());
+
+            return out.good();
+        } catch (const std::exception& e) {
+            #ifdef __EMSCRIPTEN__
+                error_compile_justb(std::string(e.what()).c_str());
+            #endif
             return false;
         }
-        
-        uint64_t originalSize = data.size();
-        out.write(reinterpret_cast<const char*>(&originalSize), sizeof(originalSize));
-        out.write(reinterpret_cast<const char*>(compressed.data.data()), compressed.data.size());
-
-        return out.good();
-    } catch (const std::exception& e) {
-        #ifdef __EMSCRIPTEN__
-            error_compile_justb(std::string(e.what()).c_str());
-        #endif
+    #else
         return false;
-    }
+    #endif
 }

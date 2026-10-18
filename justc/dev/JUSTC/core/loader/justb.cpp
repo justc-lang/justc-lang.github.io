@@ -26,11 +26,13 @@ SOFTWARE.
 
 #include "justb.hpp"
 #include "../justb.hpp"
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/unordered_map.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/memory.hpp>
+#ifndef JUSTC_NOCEREAL
+    #include <cereal/archives/binary.hpp>
+    #include <cereal/types/unordered_map.hpp>
+    #include <cereal/types/string.hpp>
+    #include <cereal/types/vector.hpp>
+    #include <cereal/types/memory.hpp>
+#endif
 #include <zlib.h>
 #include <zstd.h>
 #include <lz4.h>
@@ -168,44 +170,48 @@ ParseResult JustbLoader::load(const std::string& inputPath, const std::string& e
 }
 
 ParseResult JustbLoader::load(std::istream& in, const std::string& entryFunction) {
-    JUSTB::Header header;
-    if (!JUSTB::readHeader(in, header) || !JUSTB::validateHeader(header)) {
-        throw std::runtime_error("Invalid JUSTB header");
-    }
-
-    uint64_t originalSize = 0;
-    in.read(reinterpret_cast<char*>(&originalSize), sizeof(originalSize));
-    if (!in.good()) {
-        throw std::runtime_error("Invalid JUSTB header");
-    }
-
-    std::vector<uint8_t> compressedData;
-    compressedData.resize(originalSize);
-    in.read(reinterpret_cast<char*>(compressedData.data()), compressedData.size());
-    size_t actualSize = in.gcount();
-    compressedData.resize(actualSize);
-
-    std::vector<uint8_t> decompressedData = decompressData(compressedData, header.compression, originalSize);
-
-    ParseResult result;
-    std::string dataStr(decompressedData.begin(), decompressedData.end());
-    std::stringstream buffer(dataStr, std::ios::binary | std::ios::in | std::ios::out);
-    
-    {
-        cereal::BinaryInputArchive archive(buffer);
-        archive(result.returnValues);
-    }
-
-    auto it = result.returnValues.find(entryFunction);
-    if (it != result.returnValues.end()) {
-        Value func = it->second;
-        if (func.type != DataType::FUNCTION) throw std::runtime_error("\"" + entryFunction + "\" is defined, but it is not a function.");
-        Parser parser({});
-        for (const auto& [key, value] : result.returnValues) {
-            parser.registerGlobal(key, value);
+    #ifndef JUSTC_NOCEREAL
+        JUSTB::Header header;
+        if (!JUSTB::readHeader(in, header) || !JUSTB::validateHeader(header)) {
+            throw std::runtime_error("Invalid JUSTB header");
         }
-        parser.callFunction(func, {}, 0, true);
-    }
 
-    return result;
+        uint64_t originalSize = 0;
+        in.read(reinterpret_cast<char*>(&originalSize), sizeof(originalSize));
+        if (!in.good()) {
+            throw std::runtime_error("Invalid JUSTB header");
+        }
+
+        std::vector<uint8_t> compressedData;
+        compressedData.resize(originalSize);
+        in.read(reinterpret_cast<char*>(compressedData.data()), compressedData.size());
+        size_t actualSize = in.gcount();
+        compressedData.resize(actualSize);
+
+        std::vector<uint8_t> decompressedData = decompressData(compressedData, header.compression, originalSize);
+
+        ParseResult result;
+        std::string dataStr(decompressedData.begin(), decompressedData.end());
+        std::stringstream buffer(dataStr, std::ios::binary | std::ios::in | std::ios::out);
+        
+        {
+            cereal::BinaryInputArchive archive(buffer);
+            archive(result.returnValues);
+        }
+
+        auto it = result.returnValues.find(entryFunction);
+        if (it != result.returnValues.end()) {
+            Value func = it->second;
+            if (func.type != DataType::FUNCTION) throw std::runtime_error("\"" + entryFunction + "\" is defined, but it is not a function.");
+            Parser parser({});
+            for (const auto& [key, value] : result.returnValues) {
+                parser.registerGlobal(key, value);
+            }
+            parser.callFunction(func, {}, 0, true);
+        }
+
+        return result;
+    #else
+        throw std::runtime_error("To run JUSTB, use the standard JUSTC build. The current build excludes JUSTB.");
+    #endif
 }

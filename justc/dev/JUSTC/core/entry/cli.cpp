@@ -160,6 +160,20 @@ public:
     }
 };
 
+std::string info() {
+    #ifdef JUSTC_NOLUAU
+        #ifdef JUSTC_NOCEREAL
+            return " build type 3 (build without JUSTB and Luau)";
+        #else
+            return " build type 1 (build without Luau)";
+        #endif
+    #elif defined(JUSTC_NOCEREAL)
+        return " build type 2 (build without JUSTB)";
+    #else
+        return " build type 0 (standard build)";
+    #endif
+}
+
 inline bool doPrint = true;
 
 void printLicense() {
@@ -196,7 +210,7 @@ SOFTWARE.
 void printVersion() {
     if (doPrint) {
         doPrint = false;
-        std::cout << "The JUSTC Programming Language v" << JUSTC_VERSION << std::endl;
+        std::cout << "The JUSTC Programming Language v" << JUSTC_VERSION << info() << std::endl;
         std::cout << "Copyright (c) 2025-2026 JustStudio." << std::endl;
         std::cout << "MIT License." << std::endl;
         std::cout << "https://just.js.org/justc/" << std::endl;
@@ -208,7 +222,7 @@ void printUsage() {
         doPrint = false;
         std::cout << R"(
 
-The JUSTC Programming Language v)" << JUSTC_VERSION << R"(
+The JUSTC Programming Language v)" << JUSTC_VERSION << info() << R"(
 
 https://just.js.org/justc/
 
