@@ -47,7 +47,7 @@ namespace {
     std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 }
 
-Lexer::Lexer(const std::string& input, const bool& warn, const bool& requireDot, const bool& useDollarBefore) : input(input), warn(warn), position(0), dollarBefore(false), requireDot(requireDot), useDollarBefore(useDollarBefore) {
+Lexer::Lexer(const std::string& input, const bool& warn, const bool& requireDot, const bool& useDollarBefore) : input(input), warn(warn), position(0), dollarBefore(false), requireDot(requireDot), useDollarBefore(useDollarBefore), braceDepth(0), bracketDepth(0), parenthesisDepth(0), waitFor(0), firstBrace(0), firstBracket(0), firstParenthesis(0) {
     if (input.empty()) {
         throw std::invalid_argument("Invalid Input.");
     }
@@ -148,16 +148,16 @@ char Lexer::peek(size_t offset) const {
 // single-line comment: -- comment
 void Lexer::readComment() {
     while (position < input.length() && input[position] != '\n') {
-        position++;
+        ++position;
     }
     if (position < input.length() && input[position] == '\n') {
-        position++;
+        ++position;
     }
 }
 // multi-line comment: -{ comment }-
 void Lexer::readMultiLineComment() {
     while (position < input.length() && input[position] != '}' && peek() != '-') {
-        position++;
+        ++position;
     }
     if (position < input.length() && input[position] == '}' && peek() == '-') {
         position += 2;
@@ -182,11 +182,11 @@ ParserToken Lexer::readString(char quote, bool raw) {
                 position += 2;
             }
         } else if (ch == quote) {
-            position++;
+            ++position;
             break;
         } else {
             value += ch;
-            position++;
+            ++position;
         }
     }
     
@@ -200,7 +200,7 @@ ParserToken Lexer::readLink(bool isType) {
     while (position < input.length() && input[position] != '>') {
         value += input[position++];
     }
-    position++;
+    ++position;
     return ParserToken{isType ? "type" : "link", value, start};
 }
 
@@ -225,18 +225,6 @@ ParserToken Lexer::readNumber() {
         {'i', NumType::int_},
         {'e', NumType::exp},
     };
-
-    int braceDepth = 0;
-    int bracketDepth = 0;
-    int parenthesisDepth = 0;
-    for (size_t i = 0; i < position; i++) {
-        if (input[i] == '{') braceDepth++;
-        else if (input[i] == '}') braceDepth--;
-        else if (input[i] == '[') bracketDepth++;
-        else if (input[i] == ']') bracketDepth--;
-        else if (input[i] == '(') parenthesisDepth++;
-        else if (input[i] == ')') parenthesisDepth--;
-    }
 
     if (braceDepth > 0 || bracketDepth > 0 || parenthesisDepth > 0) {
         allowCommaDecimal = false;
@@ -304,11 +292,11 @@ ParserToken Lexer::readNumber() {
                     break;
                 }
             } else if (ch == '_') {
-                position++;
+                ++position;
                 continue;
             }
 
-            position++;
+            ++position;
         } else {
             break;
         }
@@ -373,7 +361,7 @@ ParserToken Lexer::readIdentifier() {
                 id += unicodeChar;
             } else {
                 id += ch;
-                position++;
+                ++position;
             }
         } else if (ch == ',' || ch == ';' || ch == '.' || ch == '=' || ch == ':' || ch == '-') {
             break;
@@ -422,8 +410,8 @@ ParserToken Lexer::readIdentifier() {
 }
 
 void Lexer::skipWhitespace() {
-    while (isWhitespace(input[position])) {
-        position++;
+    while (position < input.length() && isWhitespace(input[position])) {
+        ++position;
         continue;
     }
 }
@@ -436,33 +424,33 @@ std::string Lexer::readJSXAttributeValue() {
     std::string value;
     if (input[position] == '"' || input[position] == '\'') {
         char quote = input[position];
-        position++;
+        ++position;
         while (position < input.length() && input[position] != quote) {
             if (input[position] == '\\' && position + 1 < input.length()) {
                 value += input[position];
-                position++;
+                ++position;
                 value += input[position];
-                position++;
+                ++position;
             } else {
                 value += input[position];
-                position++;
+                ++position;
             }
         }
-        if (input[position] == quote) position++;
+        if (input[position] == quote) ++position;
         return value;
     } else if (input[position] == '{') {
-        position++;
-        int braceDepth = 1;
+        ++position;
+        int braceDepth_ = 1;
         std::string expr;
-        while (position < input.length() && braceDepth > 0) {
-            if (input[position] == '{') braceDepth++;
-            else if (input[position] == '}') braceDepth--;
-            if (braceDepth > 0) {
+        while (position < input.length() && braceDepth_ > 0) {
+            if (input[position] == '{') ++braceDepth_;
+            else if (input[position] == '}') --braceDepth_;
+            if (braceDepth_ > 0) {
                 expr += input[position];
-                position++;
+                ++position;
             }
         }
-        if (input[position] == '}') position++;
+        if (input[position] == '}') ++position;
         return "{" + expr + "}";
     }
     return "";
@@ -474,7 +462,7 @@ ParserToken Lexer::readJSXOpeningTag() {
     
     while (position < input.length() && isJSXIdentifier(input[position])) {
         tagName += input[position];
-        position++;
+        ++position;
     }
     
     std::unordered_map<std::string, std::string> attributes;
@@ -483,10 +471,10 @@ ParserToken Lexer::readJSXOpeningTag() {
     while (position < input.length() && input[position] != '>' && input[position] != '/') {
         skipWhitespace();
         if (input[position] == '/') {
-            position++;
+            ++position;
             if (input[position] == '>') {
                 selfClosing = true;
-                position++;
+                ++position;
                 break;
             }
             continue;
@@ -495,12 +483,12 @@ ParserToken Lexer::readJSXOpeningTag() {
         std::string attrName;
         while (position < input.length() && isJSXIdentifier(input[position])) {
             attrName += input[position];
-            position++;
+            ++position;
         }
         
         skipWhitespace();
         if (input[position] == '=') {
-            position++;
+            ++position;
             skipWhitespace();
             std::string attrValue = readJSXAttributeValue();
             attributes[attrName] = attrValue;
@@ -512,7 +500,7 @@ ParserToken Lexer::readJSXOpeningTag() {
     }
     
     if (!selfClosing && input[position] == '>') {
-        position++;
+        ++position;
     }
     
     std::string attrsStr = "o'o{";
@@ -541,25 +529,25 @@ ParserToken Lexer::readJSXOpeningTag() {
         skipWhitespace();
         if (position < input.length() && input[position] == '<') {
             if (position + 1 < input.length() && peek() == '/') {
-                depth--;
+                --depth;
                 if (depth == 0) break;
             } else if (peek() != ' ') {
-                depth++;
+                ++depth;
             }
         }
         
         if (depth > 0) {
             children += input[position];
-            position++;
+            ++position;
         }
     }
     
     if (position + 1 < input.length() && input[position] == '<' && peek() == '/') {
         position += 2;
         while (position < input.length() && isJSXIdentifier(input[position])) {
-            position++;
+            ++position;
         }
-        if (input[position] == '>') position++;
+        if (input[position] == '>') ++position;
     }
     
     result += "[" + children + "]}";
@@ -568,25 +556,25 @@ ParserToken Lexer::readJSXOpeningTag() {
 
 ParserToken Lexer::readJSX() {
     size_t start = position;
-    position++;
+    ++position;
     
     if (position >= input.length()) {
         throw std::runtime_error("Unexpected EOF at Element at " + Utility::position(position, input) + ".");
     }
     
     if (input[position] == '/') {
-        position++;
+        ++position;
         std::string tagName;
         while (position < input.length() && isJSXIdentifier(input[position])) {
             tagName += input[position];
-            position++;
+            ++position;
         }
-        if (input[position] == '>') position++;
+        if (input[position] == '>') ++position;
         return ParserToken("jsx_closing", tagName, start);
     }
     
     if (input[position] == '>') {
-        position++;
+        ++position;
         return ParserToken("jsx_fragment_open", "", start);
     }
     
@@ -600,6 +588,19 @@ void Lexer::addDollarBefore() {
     }
 }
 
+std::string Lexer::waitForToString() {
+    switch (waitFor) {
+        case 1:
+            return "}";
+        case 2:
+            return "]";
+        case 3:
+            return ")";
+        default:
+            return "";
+    }
+}
+
 void Lexer::tokenize() {
     std::string warnPrefix = "";
     #ifndef __EMSCRIPTEN__
@@ -607,12 +608,21 @@ void Lexer::tokenize() {
         warnPrefix = "::warning::";
     }
     #endif
+
+    braceDepth = 0;
+    bracketDepth = 0;
+    parenthesisDepth = 0;
+    waitFor = 0;
+    firstBrace = 0;
+    firstBracket = 0;
+    firstParenthesis = 0;
+
     while (position < input.length()) {
         char ch = input[position];
 
         if (isWhitespace(ch)) {
             addDollarBefore();
-            position++;
+            ++position;
             continue;
         }
 
@@ -644,10 +654,10 @@ void Lexer::tokenize() {
                 addDollarBefore();
                 position += 2;
                 while (position < input.length() && input[position] != '\n') {
-                    position++;
+                    ++position;
                 }
                 if (position < input.length() && input[position] == '\n') {
-                    position++;
+                    ++position;
                 }
                 continue;
             }
@@ -660,7 +670,7 @@ void Lexer::tokenize() {
                     position += 2;
                     break;
                 }
-                position++;
+                ++position;
             }
             continue;
         }
@@ -679,19 +689,19 @@ void Lexer::tokenize() {
 
         if (ch == 'l' && peek() == '<') {
             addDollarBefore();
-            position++;
+            ++position;
             tokens.push_back(readLink());
             continue;
         }
         if (ch == 't' && peek() == '<') {
             addDollarBefore();
-            position++;
+            ++position;
             tokens.push_back(readLink(true));
             continue;
         }
         if (ch == 'e' && peek() == '<') {
             addDollarBefore();
-            position++;
+            ++position;
             tokens.push_back(readJSX());
             continue;
         }
@@ -853,7 +863,7 @@ void Lexer::tokenize() {
         }
         if (ch == '#' && peek() == '&' && isDigit(peek(2))) {
             addDollarBefore();
-            position++;
+            ++position;
             tokens.push_back(readNumber());
             continue;
         }
@@ -861,7 +871,7 @@ void Lexer::tokenize() {
         if ((ch == 'l' || ch == 'j' || ch == 'c' || ch == 'o') && (peek() == '"' || peek() == '\'' || peek() == '`')) {
             addDollarBefore();
             char qch = peek();
-            position++;
+            ++position;
             ParserToken str = readString(qch, qch == '\'');
             std::string type = ch == 'l' ? "Luau" : ch == 'j' ? "JavaScript" : ch == 'c' ? "JUSTC" : "JUSTO";
             tokens.push_back(ParserToken{type + (qch == '`' ? "_i" : ""), str.value, str.start});
@@ -878,7 +888,7 @@ void Lexer::tokenize() {
         if (ch == 'r' && (peek() == '"' || peek() == '\'' || peek() == '`')) {
             addDollarBefore();
             char qch = peek();
-            position++;
+            ++position;
             bool isRaw = qch != '\'';
             ParserToken str = readString(qch, isRaw);
             if (isRaw && qch == '`') str.type = "string_ri";
@@ -886,11 +896,73 @@ void Lexer::tokenize() {
             continue;
         }
 
-        if (ch == ',' || ch == '.' || ch == '[' || ch == ']' ||
-            ch == '(' || ch == ')' || ch == '{' || ch == '}') {
+        if (ch == '{') {
+            addDollarBefore();
+            ++braceDepth;
+            tokens.push_back(ParserToken{"{", "{", position});
+            if (firstBrace == 0) firstBrace = position;
+            ++position;
+            waitFor = 1;
+            continue;
+        }
+        if (ch == '}') {
+            if (braceDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \"}\" at " + Utility::position(position, input) + ".");
+            if (waitFor != 1 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \"}\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input) + ".");
+            addDollarBefore();
+            --braceDepth;
+            tokens.push_back(ParserToken{"}", "}", position});
+            if (braceDepth <= 0) firstBrace = 0;
+            ++position;
+            waitFor = 0;
+            continue;
+        }
+
+        if (ch == '[') {
+            addDollarBefore();
+            ++bracketDepth;
+            tokens.push_back(ParserToken{"[", "[", position});
+            if (firstBracket == 0) firstBracket = position;
+            ++position;
+            waitFor = 2;
+            continue;
+        }
+        if (ch == ']') {
+            if (bracketDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \"]\" at " + Utility::position(position, input) + ".");
+            if (waitFor != 2 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \"]\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input) + ".");
+            addDollarBefore();
+            --bracketDepth;
+            tokens.push_back(ParserToken{"]", "]", position});
+            if (bracketDepth <= 0) firstBracket = 0;
+            ++position;
+            waitFor = 0;
+            continue;
+        }
+
+        if (ch == '(') {
+            addDollarBefore();
+            ++parenthesisDepth;
+            tokens.push_back(ParserToken{"(", "(", position});
+            if (firstParenthesis == 0) firstParenthesis = position;
+            ++position;
+            waitFor = 3;
+            continue;
+        }
+        if (ch == ')') {
+            if (parenthesisDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \")\" at " + Utility::position(position, input) + ".");
+            if (waitFor != 3 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \")\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input) + ".");
+            addDollarBefore();
+            --parenthesisDepth;
+            tokens.push_back(ParserToken{")", ")", position});
+            if (parenthesisDepth <= 0) firstParenthesis = 0;
+            ++position;
+            waitFor = 0;
+            continue;
+        }
+
+        if (ch == ',' || ch == '.') {
             addDollarBefore();
             tokens.push_back(ParserToken{std::string(1, ch), std::string(1, ch), position});
-            position++;
+            ++position;
             continue;
         }
 
@@ -913,7 +985,7 @@ void Lexer::tokenize() {
                         while(position < input.length() &&
                             isWhitespace(input[position]))
                         {
-                            position++;
+                            ++position;
                         }
 
                         ParserToken target = readNumber();
@@ -933,13 +1005,13 @@ void Lexer::tokenize() {
         if (ch == '-') {
             addDollarBefore();
             tokens.push_back(ParserToken{"minus", "-", position});
-            position++;
+            ++position;
             continue;
         }
 
         if (ch == '$' && useDollarBefore) {
             dollarBefore = true;
-            position++;
+            ++position;
             continue;
         }
 
@@ -1030,7 +1102,7 @@ void Lexer::tokenize() {
             ch == '*' || ch == '/' || ch == '%' || ch == '^') {
             addDollarBefore();
             tokens.push_back(ParserToken{std::string(1, ch), std::string(1, ch), position});
-            position++;
+            ++position;
             continue;
         }
 
@@ -1051,21 +1123,25 @@ void Lexer::tokenize() {
         if (ch == '~') {
             addDollarBefore();
             tokens.push_back(ParserToken{"~", "~", position});
-            position++;
+            ++position;
             continue;
         }
 
         if (ch == '^') {
             addDollarBefore();
             tokens.push_back(ParserToken{"^", "^", position});
-            position++;
+            ++position;
             continue;
         }
 
         addDollarBefore();
         tokens.push_back(ParserToken{std::string(1, ch), std::string(1, ch), position});
-        position++;
+        ++position;
     }
+
+    if (braceDepth > 0) throw std::runtime_error("Unclosed delimiter \"{\" at " + Utility::position(firstBrace, input) + ".");
+    if (bracketDepth > 0) throw std::runtime_error("Unclosed delimiter \"[\" at " + Utility::position(firstBracket, input) + ".");
+    if (parenthesisDepth > 0) throw std::runtime_error("Unclosed delimiter \"(\" at " + Utility::position(firstParenthesis, input) + ".");
 
     addDollarBefore();
 }

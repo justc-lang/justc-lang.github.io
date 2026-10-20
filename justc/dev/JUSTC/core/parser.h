@@ -260,11 +260,14 @@ struct NumericValue {
     
     template<typename T>
     void set(T val) {
+        if (data) free(data);
         data = malloc(sizeof(T));
         if (data) {
             memcpy(data, &val, sizeof(T));
             value = static_cast<double>(val);
             setType<T>();
+        } else {
+            throw std::runtime_error("Failed to allocate memory in JUSTC/core/parser.h: struct NumericValue: void set(T val).");
         }
     }
     
@@ -314,6 +317,8 @@ struct NumericValue {
             data = malloc(size);
             if (data) {
                 memcpy(data, other.data, size);
+            } else {
+                throw std::runtime_error("Failed to allocate memory in JUSTC/core/parser.h: struct NumericValue: NumericValue(const NumericValue& other).");
             }
         } else {
             data = nullptr;
@@ -333,6 +338,8 @@ struct NumericValue {
                 data = malloc(size);
                 if (data) {
                     memcpy(data, other.data, size);
+                } else {
+                    throw std::runtime_error("Failed to allocate memory in JUSTC/core/parser.h: struct NumericValue: NumericValue& operator=(const NumericValue& other).");
                 }
             }
         }
@@ -437,6 +444,8 @@ struct NumericValue {
                             *(double*)data = value;
                             break;
                     }
+                } else {
+                    throw std::runtime_error("Failed to allocate memory in JUSTC/core/parser.h: struct NumericValue: void serialize(Archive& archive).");
                 }
             }
         }

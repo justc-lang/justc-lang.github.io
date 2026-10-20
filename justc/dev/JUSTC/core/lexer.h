@@ -72,6 +72,14 @@ private:
     std::vector<std::string> bkw;
     std::vector<size_t> gotopos;
 
+    size_t braceDepth;
+    size_t bracketDepth;
+    size_t parenthesisDepth;
+    int waitFor;
+    size_t firstBrace;
+    size_t firstBracket;
+    size_t firstParenthesis;
+
     void initializeKeywords();
     bool isWhitespace(char ch) const;
     bool isLetter(char ch) const;
@@ -91,6 +99,7 @@ private:
     ParserToken readLink(bool isType = false);
     ParserToken readNumber();
     ParserToken readIdentifier();
+    std::string waitForToString();
     void tokenize();
 
     void invalidInput();

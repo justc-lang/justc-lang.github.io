@@ -582,6 +582,8 @@ Value Value::createNumberWithType(T num, NumericType numType) {
                 *(double*)result.numeric_data->data = static_cast<double>(num);
                 break;
         }
+    } else {
+        throw std::runtime_error("Failed to allocate memory in JUSTC/core/parser.cpp: Value Value::createNumberWithType(T num, NumericType numType).");
     }
 
     result.name = result.toNumericString();
