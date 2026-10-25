@@ -7444,7 +7444,7 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
         }
     }
     
-    const size_t optimizedBodyEnd = optimizedTokens.size();
+    const size_t optimizedBodyEnd = optimizedTokens.size() - 1;
 
     if (braceCount != 0) {
         throw std::runtime_error("Unclosed function body at " + Utility::position(currentToken().start, input));
@@ -7455,6 +7455,19 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
         tokens.begin() + bodyEnd
     );
     if (parsertype == ParserType::OPTIMIZE) {
+        std::unordered_map<std::string, Value> functionContext;
+        if (!isIsolated) {
+            for (const auto& [key, value] : this->variables) {
+                try {
+                    functionContext[key] = resolveVariableValue(key, false);
+                } catch (...) {
+                    functionContext[key] = value;
+                }
+            }
+        }
+        for (Value importedVar : importedContext) {
+            functionContext[importedVar.name] = importedVar;
+        }
         funcInfo.tokens = Parser::optimize(
             funcInfo.tokens,
             doExecute,
@@ -7465,7 +7478,8 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
             scriptName,
             scriptType,
             allowLuau,
-            canAllowLuau
+            canAllowLuau,
+            &functionContext
         );
         optimizedTokens.erase(
             optimizedTokens.begin() + optimizedBodyStart,
@@ -9650,9 +9664,9 @@ ParseResult Parser::parseTokens(const std::vector<ParserToken>& tokens, bool doE
     }
     #endif
 }
-std::vector<ParserToken> Parser::optimize(const std::vector<ParserToken>& tokens, bool doExecute, bool runAsync, const std::string& input, const bool allowJavaScript, const bool canAllowJS, const std::string scriptName, const std::string scriptType, const bool allowLuau, const bool canAllowLuau) {
+std::vector<ParserToken> Parser::optimize(const std::vector<ParserToken>& tokens, bool doExecute, bool runAsync, const std::string& input, const bool allowJavaScript, const bool canAllowJS, const std::string scriptName, const std::string scriptType, const bool allowLuau, const bool canAllowLuau, const std::unordered_map<std::string, Value>* initialContext) {
     try {
-        Parser parser(tokens, doExecute, runAsync, input, allowJavaScript, canAllowJS, scriptName, scriptType, allowLuau, canAllowLuau, false, nullptr, CharType::GRAPHEME, ParserType::OPTIMIZE);
+        Parser parser(tokens, doExecute, runAsync, input, allowJavaScript, canAllowJS, scriptName, scriptType, allowLuau, canAllowLuau, false, initialContext, CharType::GRAPHEME, ParserType::OPTIMIZE);
         try {
             parser.parse(doExecute);
         } catch (...) {
