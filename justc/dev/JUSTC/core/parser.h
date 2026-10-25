@@ -886,6 +886,8 @@ struct StringPart {
     StringPart(bool lit, const std::string& cont) : isLiteral(lit), content(cont) {}
 };
 
+using builtinFunction = std::variant<uint32_t, std::string>;
+
 class Parser {
 private:
     bool doExecute;
@@ -954,7 +956,7 @@ private:
     uint64_t currentScope;
     uint64_t rootIndex;
     
-    std::unordered_map<DataType, std::unordered_map<std::string, std::string>> typeMethods;
+    std::unordered_map<DataType, std::unordered_map<std::string, uint32_t>> typeMethods;
 
     ParserType parsertype;
 
@@ -1033,7 +1035,7 @@ private:
     ASTNode parseAllowCommand();
     ASTNode parseImportCommand();
 
-    Value executeFunction(const std::string& funcName, const std::vector<Value>& args, size_t startPos);
+    Value executeFunction(const builtinFunction& funcName_, const std::vector<Value>& args, size_t startPos);
     Value doubleDot(const Value& left, const Value& right);
     Value evaluateExpression(const Value& left, const std::string& op, const Value& right, bool doExecute);
     Value handleInequality(const Value& value);
@@ -1110,6 +1112,15 @@ private:
     std::future<Value> functionFILEAsync(const std::vector<Value>& args);
     Value functionVALUE(const std::vector<Value>& args);
     Value functionSTRING(const std::vector<Value>& args);
+    Value functionSTRINGGRAPHEMEREVERSE(const std::vector<Value>& args);
+    Value functionSTRINGGRAPHEMESLICE(const std::vector<Value>& args);
+    Value functionSTRINGGRAPHEMELENGTH(const std::vector<Value>& args);
+    Value functionSTRINGCODEPOINTREVERSE(const std::vector<Value>& args);
+    Value functionSTRINGCODEPOINTSLICE(const std::vector<Value>& args);
+    Value functionSTRINGCODEPOINTLENGTH(const std::vector<Value>& args);
+    Value functionSTRINGBYTEREVERSE(const std::vector<Value>& args);
+    Value functionSTRINGBYTESLICE(const std::vector<Value>& args);
+    Value functionSTRINGBYTELENGTH(const std::vector<Value>& args);
     Value functionLINK(const std::vector<Value>& args);
     Value functionBINARY(const std::vector<Value>& args);
     Value functionOCTAL(const std::vector<Value>& args);
@@ -1267,6 +1278,7 @@ public:
     void unregisterUserFunction(uint64_t id);
     void clearUserFunctions_();
     Value createFunction(std::function<Value(const std::vector<Value>&)> func, const std::string& name = "");
+    Value createFunction(std::function<Value(const std::vector<Value>&)> func, const uint32_t& hash);
     bool isFunctionValue(const Value& value) const;
     bool isFunctionId(const std::string& name) const;
     uint64_t extractFunctionId(const std::string& name) const;

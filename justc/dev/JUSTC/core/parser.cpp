@@ -173,6 +173,18 @@ using namespace promise;
 #define FUNCTION_ID_NAME "__function_id"
 #endif
 
+constexpr uint32_t hash_fnv1a(std::string_view str) {
+    uint32_t hash = 0x811c9dc5;
+    for (char c : str) {
+        hash ^= static_cast<uint32_t>(c);
+        hash *= 0x01000193;
+    }
+    return hash;
+}
+constexpr uint32_t operator"" _h(const char* str, size_t len) {
+    return hash_fnv1a(std::string_view(str, len));
+}
+
 std::string Value::toString() const {
     std::string valname = isVariable ? variable : name;
     switch (type) {
@@ -874,301 +886,302 @@ Parser::Parser(
     // built-in spaces / type methods
 
     typeMethods[DataType::JUSTC_OBJECT] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"size", "Object::size"},
+        {"size", "Object::size"_h},
     };
     typeMethods[DataType::NUMBER] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::STRING] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"reverse", "String::reverse"},
-        {"graphemeReverse", "String::graphemeReverse"},
-        {"codePointReverse", "String::codePointReverse"},
-        {"byteReverse", "String::byteReverse"},
-        {"trim", "String::trim"},
-        {"repeat", "String::repeat"},
-        {"slice", "String::slice"},
-        {"graphemeSlice", "String::graphemeSlice"},
-        {"codePointSlice", "String::codePointSlice"},
-        {"byteSlice", "String::byteSlice"},
-        {"lower", "String::lower"},
-        {"upper", "String::upper"},
-        {"normalize", "String::normalize"},
-        {"length", "String::length"},
-        {"graphemeLength", "String::graphemeLength"},
-        {"codePointLength", "String::codePointLength"},
-        {"byteLength", "String::byteLength"},
-        {"size", "String::size"},
-        {"equalsIgnoreCase", "String::equalsIgnoreCase"},
-        {"isWhitespace", "String::isWhitespace"},
-        {"startsWith", "String::startsWith"},
-        {"endsWith", "String::endsWith"},
-        {"split", "String::split"}
+        {"reverse", "String::reverse"_h},
+        {"graphemeReverse", "String::graphemeReverse"_h},
+        {"codePointReverse", "String::codePointReverse"_h},
+        {"byteReverse", "String::byteReverse"_h},
+        {"trim", "String::trim"_h},
+        {"repeat", "String::repeat"_h},
+        {"slice", "String::slice"_h},
+        {"graphemeSlice", "String::graphemeSlice"_h},
+        {"codePointSlice", "String::codePointSlice"_h},
+        {"byteSlice", "String::byteSlice"_h},
+        {"lower", "String::lower"_h},
+        {"upper", "String::upper"_h},
+        {"normalize", "String::normalize"_h},
+        {"length", "String::length"_h},
+        {"graphemeLength", "String::graphemeLength"_h},
+        {"codePointLength", "String::codePointLength"_h},
+        {"byteLength", "String::byteLength"_h},
+        {"size", "String::size"_h},
+        {"equalsIgnoreCase", "String::equalsIgnoreCase"_h},
+        {"isWhitespace", "String::isWhitespace"_h},
+        {"startsWith", "String::startsWith"_h},
+        {"endsWith", "String::endsWith"_h},
+        {"split", "String::split"_h},
+        {"hash", "String::hash"_h},
     };
     typeMethods[DataType::LINK] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::BOOLEAN] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::JSON_OBJECT] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"size", "Object::size"},
+        {"size", "Object::size"_h},
     };
     typeMethods[DataType::JSON_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"join", "Array::join"},
-        {"includes", "Array::includes"},
-        {"indexOf", "Array::indexOf"},
-        {"lastIndexOf", "Array::lastIndexOf"},
-        {"reverse", "Array::reverse"},
-        {"forEach", "Array::forEach"},
-        {"push", "Array::push"},
-        {"unshift", "Array::unshift"},
-        {"size", "Array::size"},
+        {"join", "Array::join"_h},
+        {"includes", "Array::includes"_h},
+        {"indexOf", "Array::indexOf"_h},
+        {"lastIndexOf", "Array::lastIndexOf"_h},
+        {"reverse", "Array::reverse"_h},
+        {"forEach", "Array::forEach"_h},
+        {"push", "Array::push"_h},
+        {"unshift", "Array::unshift"_h},
+        {"size", "Array::size"_h},
     };
     typeMethods[DataType::NULL_TYPE] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::FUNCTION] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::NOT_A_NUMBER] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::INFINITE] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::NINFINITE] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::STRUCT] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::JSX_ELEMENT] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"render", "Element::render"},
+        {"render", "Element::render"_h},
     };
     typeMethods[DataType::MAP] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"set", "Map::set"},
-        {"get", "Map::get"},
-        {"has", "Map::has"},
-        {"delete", "Map::delete"},
-        {"clear", "Map::clear"},
-        {"size", "Map::size"},
+        {"set", "Map::set"_h},
+        {"get", "Map::get"_h},
+        {"has", "Map::has"_h},
+        {"delete", "Map::delete"_h},
+        {"clear", "Map::clear"_h},
+        {"size", "Map::size"_h},
     };
     typeMethods[DataType::SET] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"add", "Set::add"},
-        {"has", "Set::has"},
-        {"delete", "Set::delete"},
-        {"clear", "Set::clear"},
-        {"size", "Set::size"},
+        {"add", "Set::add"_h},
+        {"has", "Set::has"_h},
+        {"delete", "Set::delete"_h},
+        {"clear", "Set::clear"_h},
+        {"size", "Set::size"_h},
     };
     typeMethods[DataType::INT8_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "Int8Array::compress"},
-        {"decompress", "Int8Array::decompress"},
-        {"size", "Int8Array::size"},
+        {"compress", "Int8Array::compress"_h},
+        {"decompress", "Int8Array::decompress"_h},
+        {"size", "Int8Array::size"_h},
     };
     typeMethods[DataType::INT16_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "Int16Array::compress"},
-        {"decompress", "Int16Array::decompress"},
-        {"size", "Int16Array::size"},
+        {"compress", "Int16Array::compress"_h},
+        {"decompress", "Int16Array::decompress"_h},
+        {"size", "Int16Array::size"_h},
     };
     typeMethods[DataType::INT32_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "Int32Array::compress"},
-        {"decompress", "Int32Array::decompress"},
-        {"size", "Int32Array::size"},
+        {"compress", "Int32Array::compress"_h},
+        {"decompress", "Int32Array::decompress"_h},
+        {"size", "Int32Array::size"_h},
     };
     typeMethods[DataType::INT64_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "Int64Array::compress"},
-        {"decompress", "Int64Array::decompress"},
-        {"size", "Int64Array::size"},
+        {"compress", "Int64Array::compress"_h},
+        {"decompress", "Int64Array::decompress"_h},
+        {"size", "Int64Array::size"_h},
     };
     typeMethods[DataType::UINT8_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "UInt8Array::compress"},
-        {"decompress", "UInt8Array::decompress"},
-        {"size", "UInt8Array::size"},
+        {"compress", "UInt8Array::compress"_h},
+        {"decompress", "UInt8Array::decompress"_h},
+        {"size", "UInt8Array::size"_h},
     };
     typeMethods[DataType::UINT16_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "UInt16Array::compress"},
-        {"decompress", "UInt16Array::decompress"},
-        {"size", "UInt16Array::size"},
+        {"compress", "UInt16Array::compress"_h},
+        {"decompress", "UInt16Array::decompress"_h},
+        {"size", "UInt16Array::size"_h},
     };
     typeMethods[DataType::UINT32_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "UInt32Array::compress"},
-        {"decompress", "UInt32Array::decompress"},
-        {"size", "UInt32Array::size"},
+        {"compress", "UInt32Array::compress"_h},
+        {"decompress", "UInt32Array::decompress"_h},
+        {"size", "UInt32Array::size"_h},
     };
     typeMethods[DataType::UINT64_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "UInt64Array::compress"},
-        {"decompress", "UInt64Array::decompress"},
-        {"size", "UInt64Array::size"},
+        {"compress", "UInt64Array::compress"_h},
+        {"decompress", "UInt64Array::decompress"_h},
+        {"size", "UInt64Array::size"_h},
     };
     typeMethods[DataType::CUINT8_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "CUInt8Array::compress"},
-        {"decompress", "CUInt8Array::decompress"},
-        {"size", "CUInt8Array::size"},
+        {"compress", "CUInt8Array::compress"_h},
+        {"decompress", "CUInt8Array::decompress"_h},
+        {"size", "CUInt8Array::size"_h},
     };
     typeMethods[DataType::CUINT16_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "CUInt16Array::compress"},
-        {"decompress", "CUInt16Array::decompress"},
-        {"size", "CUInt16Array::size"},
+        {"compress", "CUInt16Array::compress"_h},
+        {"decompress", "CUInt16Array::decompress"_h},
+        {"size", "CUInt16Array::size"_h},
     };
     typeMethods[DataType::CUINT32_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "CUInt32Array::compress"},
-        {"decompress", "CUInt32Array::decompress"},
-        {"size", "CUInt32Array::size"},
+        {"compress", "CUInt32Array::compress"_h},
+        {"decompress", "CUInt32Array::decompress"_h},
+        {"size", "CUInt32Array::size"_h},
     };
     typeMethods[DataType::CUINT64_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
 
-        {"compress", "CUInt64Array::compress"},
-        {"decompress", "CUInt64Array::decompress"},
-        {"size", "CUInt64Array::size"},
+        {"compress", "CUInt64Array::compress"_h},
+        {"decompress", "CUInt64Array::decompress"_h},
+        {"size", "CUInt64Array::size"_h},
     };
     typeMethods[DataType::FLOAT32_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
         
-        {"size", "Float32Array::size"},
+        {"size", "Float32Array::size"_h},
     };
     typeMethods[DataType::FLOAT64_ARRAY] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
         
-        {"size", "Float64Array::size"},
+        {"size", "Float64Array::size"_h},
     };
     typeMethods[DataType::PROMISE] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
     typeMethods[DataType::ERROR] = {
-        {"toString", "String"},
-        {"toNumber", "Number"},
-        {"toInt", "ParseInt"},
-        {"toLink", "Link"},
+        {"toString", "String"_h},
+        {"toNumber", "Number"_h},
+        {"toInt", "ParseInt"_h},
+        {"toLink", "Link"_h},
     };
 
     // built-in variables
@@ -3520,7 +3533,19 @@ Value Parser::onExecDisabled(size_t startPos, std::string name) {
     return result;
 }
 
-Value Parser::executeFunction(const std::string& funcName, const std::vector<Value>& args, size_t startPos) {
+Value Parser::executeFunction(const builtinFunction& funcName_, const std::vector<Value>& args, size_t startPos) {
+    std::string funcName = "unknown";
+    uint32_t hashed;
+
+    if (std::holds_alternative<uint32_t>(funcName_)) {
+        uint32_t raw_val = std::get<uint32_t>(funcName_);
+        funcName = Utility::uint32ToHexString(raw_val);
+        hashed = raw_val;
+    } else if (std::holds_alternative<std::string>(funcName_)) {
+        funcName = std::get<std::string>(funcName_);
+        hashed = hash_fnv1a(funcName);
+    }
+
     if (!doExecute) {
         return onExecDisabled(startPos, funcName);
     }
@@ -3544,656 +3569,110 @@ Value Parser::executeFunction(const std::string& funcName, const std::vector<Val
         }
     }
 
-    if (funcName == "TIME") {
-        long timestamp = getCurrentTime();
-        return numberToValue(timestamp);
-    }
-    else if (funcName == "math.pi") {
-        return numberToValue(Math::PI);
-    }
-    else if (funcName == "backslash") {
-        return stringToValue("\\");
-    }
-    else if (funcName == "version" || funcName == "JUSTC.version" || funcName == "JUSTO.version") {
-        return stringToValue(JUSTC_VERSION);
-    }
-    else if (funcName == "math.e") {
-        return numberToValue(Math::E);
-    }
-    else if (funcName == "math.ln2") {
-        return numberToValue(Math::LN2);
-    }
-    else if (funcName == "math.ln10") {
-        return numberToValue(Math::LN10);
-    }
-    else if (funcName == "math.sqrt2") {
-        return numberToValue(Math::SQRT2);
-    }
-    else if (funcName == "math.sqrt1_2") {
-        return numberToValue(Math::SQRT1_2);
-    }
-    else if (funcName == "math.log2e") {
-        return numberToValue(Math::LOG2E);
-    }
-    else if (funcName == "math.log10e") {
-        return numberToValue(Math::LOG10E);
-    }
+    switch (hashed) {
+        case "TIME"_h: {
+            long timestamp = getCurrentTime();
+            return numberToValue(timestamp);
+        }
+        case "math.pi"_h: return numberToValue(Math::PI);
+        case "backslash"_h: return stringToValue("\\");
+        case "version"_h:
+        case "JUSTC.version"_h:
+        case "JUSTO.version"_h: return stringToValue(JUSTC_VERSION);
+        case "math.e"_h: return numberToValue(Math::E);
+        case "math.ln2"_h: return numberToValue(Math::LN2);
+        case "math.ln10"_h: return numberToValue(Math::LN10);
+        case "math.sqrt2"_h: return numberToValue(Math::SQRT2);
+        case "math.sqrt1_2"_h: return numberToValue(Math::SQRT1_2);
+        case "math.log2e"_h: return numberToValue(Math::LOG2E);
+        case "math.log10e"_h: return numberToValue(Math::LOG10E);
 
-    if (funcName == "valueof") return functionVALUE(args);
-    if (funcName == "String") return functionSTRING(args);
-    if (funcName == "Link") return functionLINK(args);
-    if (funcName == "Binary") return functionBINARY(args);
-    if (funcName == "Octal") return functionOCTAL(args);
-    if (funcName == "Hexadecimal") return functionHEXADECIMAL(args);
-    if (funcName == "typeid") return functionTYPEID(args);
-    if (funcName == "typeof") return functionTYPEOF(args);
-    if (funcName == "echo") return functionECHO(args);
-    if (funcName == "Number") {
-        if (args.empty()) return numberToValue(0.0);
-        return numberToValue(args[0].toNumber());
-    }
-    if (funcName == "JSON") return functionJSON(args);
-    if (funcName == "HTTP.GET") {
-        if (runAsync) {
-            auto future = functionHTTPAsync(startPos, "GET", args);
-            return future.get();
+        case "valueof"_h: return functionVALUE(args);
+        case "String"_h: return functionSTRING(args);
+        case "Link"_h: return functionLINK(args);
+        case "Binary"_h: return functionBINARY(args);
+        case "Octal"_h: return functionOCTAL(args);
+        case "Hexadecimal"_h: return functionHEXADECIMAL(args);
+        case "typeid"_h: return functionTYPEID(args);
+        case "typeof"_h: return functionTYPEOF(args);
+        case "echo"_h: return functionECHO(args);
+        case "Number"_h: {
+            if (args.empty()) return numberToValue(0.0);
+            return numberToValue(args[0].toNumber());
         }
-        return functionHTTP(startPos, "GET", args);
-    }
-    if (funcName == "HTTP.POST") {
-        if (runAsync) {
-            auto future = functionHTTPAsync(startPos, "POST", args);
-            return future.get();
-        }
-        return functionHTTP(startPos, "POST", args);
-    }
-    if (funcName == "HTTP.PUT") {
-        if (runAsync) {
-            auto future = functionHTTPAsync(startPos, "PUT", args);
-            return future.get();
-        }
-        return functionHTTP(startPos, "PUT", args);
-    }
-    if (funcName == "HTTP.PATCH") {
-        if (runAsync) {
-            auto future = functionHTTPAsync(startPos, "PATCH", args);
-            return future.get();
-        }
-        return functionHTTP(startPos, "PATCH", args);
-    }
-    if (funcName == "HTTP.DELETE") {
-        if (runAsync) {
-            auto future = functionHTTPAsync(startPos, "DELETE", args);
-            return future.get();
-        }
-        return functionHTTP(startPos, "DELETE", args);
-    }
-    if (funcName == "HTTP.HEAD") {
-        if (runAsync) {
-            auto future = functionHTTPAsync(startPos, "HEAD", args);
-            return future.get();
-        }
-        return functionHTTP(startPos, "HEAD", args);
-    }
-    if (funcName == "HTTP.OPTIONS") {
-        if (runAsync) {
-            auto future = functionHTTPAsync(startPos, "OPTIONS", args);
-            return future.get();
-        }
-        return functionHTTP(startPos, "OPTIONS", args);
-    }
-    if (funcName == "JUSTC") return functionJUSTC(args, startPos);
-    if (funcName == "file") {
-        if (runAsync) {
-            auto future = functionFILEAsync(args);
-            return future.get();
-        }
-        return functionFILE(args);
-    }
-    if (funcName == "size") return functionSTAT(args);
-    if (funcName == "config") return functionCONFIG(args);
+        case "JSON"_h: 
+        case "JSON.parse"_h: return functionJSON(args);
 
-    if (funcName == "JavaScript.isAllowed") {
-        return booleanToValue(allowJavaScript);
-    }
-    if (funcName == "Luau.isAllowed") {
-        return booleanToValue(allowLuau);
-    }
+        case "HTTP.GET"_h: {
+            if (runAsync) {
+                auto future = functionHTTPAsync(startPos, "GET", args);
+                return future.get();
+            }
+            return functionHTTP(startPos, "GET", args);
+        }
+        case "HTTP.POST"_h: {
+            if (runAsync) {
+                auto future = functionHTTPAsync(startPos, "POST", args);
+                return future.get();
+            }
+            return functionHTTP(startPos, "POST", args);
+        }
+        case "HTTP.PUT"_h: {
+            if (runAsync) {
+                auto future = functionHTTPAsync(startPos, "PUT", args);
+                return future.get();
+            }
+            return functionHTTP(startPos, "PUT", args);
+        }
+        case "HTTP.PATCH"_h: {
+            if (runAsync) {
+                auto future = functionHTTPAsync(startPos, "PATCH", args);
+                return future.get();
+            }
+            return functionHTTP(startPos, "PATCH", args);
+        }
+        case "HTTP.DELETE"_h: {
+            if (runAsync) {
+                auto future = functionHTTPAsync(startPos, "DELETE", args);
+                return future.get();
+            }
+            return functionHTTP(startPos, "DELETE", args);
+        }
+        case "HTTP.HEAD"_h: {
+            if (runAsync) {
+                auto future = functionHTTPAsync(startPos, "HEAD", args);
+                return future.get();
+            }
+            return functionHTTP(startPos, "HEAD", args);
+        }
+        case "HTTP.OPTIONS"_h: {
+            if (runAsync) {
+                auto future = functionHTTPAsync(startPos, "OPTIONS", args);
+                return future.get();
+            }
+            return functionHTTP(startPos, "OPTIONS", args);
+        }
 
-    double inpnum = 0.0;
-    if (
-        args.empty() && funcName != "math.random" && funcName != "Window" && funcName != "task.wait" && funcName != "memory.global" &&
-        funcName != "memory.classes" && funcName != "memory.funcitons" && funcName != "memory.pointers"
-    ) {
-        if (funcName == "JUSTC.parse" || funcName == "JUSTC.execute") {
-            return emptyJUSTC();
+        case "JUSTC"_h: return functionJUSTC(args, startPos);
+        case "file"_h: {
+            if (runAsync) {
+                auto future = functionFILEAsync(args);
+                return future.get();
+            }
+            return functionFILE(args);
         }
-        if (funcName == "JUSTO.stringify") {
-            return stringToValue("");
-        }
-        if (funcName == "JUSTC.stringify") {
-            return stringToValue("return.");
-        }
-        throw std::runtime_error("Expected at least one argument, got 0 at " + Utility::position(startPos, input) + ".");
-    }
-    if (!args.empty()) inpnum = args[0].number_value;
-    try {
-        if (funcName == "Binary::toText") {
-            return Binary::ToText(args);
-        }
-        if (funcName == "Binary::dromText") {
-            return Binary::FromText(args);
-        }
-        if (funcName == "Binary::toDataURL") {
-            return Binary::ToDataURL(args);
-        }
-        if (funcName == "Binary::fromDataURL") {
-            return Binary::FromDataURL(args);
-        }
-        if (funcName == "Binary::data") {
-            return Binary::Data(args);
-        }
-        if (funcName == "math.abs") {
-            return Value::createNumber(Math::Abs(inpnum));
-        }
-        if (funcName == "math.acos") {
-            return Value::createNumber(Math::Acos(inpnum));
-        }
-        if (funcName == "math.asin") {
-            return Value::createNumber(Math::Asin(inpnum));
-        }
-        if (funcName == "math.atan") {
-            return Value::createNumber(Math::Atan(inpnum));
-        }
-        if (funcName == "math.atan2") {
-            return Value::createNumber(Math::Atan2(inpnum, args[1].number_value));
-        }
-        if (funcName == "math.ceil") {
-            return Value::createNumber(Math::Ceil(inpnum));
-        }
-        if (funcName == "math.cos") {
-            return Value::createNumber(Math::Cos(inpnum));
-        }
-        if (funcName == "math.clamp") {
-            return Value::createNumber(Math::Clamp(inpnum, args[1].number_value, args[2].number_value));
-        }
-        if (funcName == "math.cube") {
-            return Value::createNumber(inpnum * inpnum * inpnum);
-        }
-        if (funcName == "math.double") {
-            return Value::createNumber(inpnum * 2);
-        }
-        if (funcName == "math.exp") {
-            return Value::createNumber(Math::Exp(inpnum));
-        }
-        if (funcName == "math.factorial") {
-            int intValue = static_cast<int>(std::round(inpnum));
-            long long res = Math::Factorial(intValue);
-            double outVal = static_cast<double>(res);
-            return Value::createNumber(outVal);
-        }
-        if (funcName == "math.floor") {
-            return Value::createNumber(Math::Floor(inpnum));
-        }
-        if (funcName == "math.hypot") {
-            return Value::createNumber(Math::Hypot(inpnum, args[1].number_value));
-        }
-        if (funcName == "math.isPrime") {
-            int intValue = static_cast<int>(std::round(inpnum));
-            return Value::createBoolean(Math::IsPrime(intValue));
-        }
-        if (funcName == "math.lerp") {
-            return Value::createNumber(Math::Lerp(inpnum, args[1].number_value, args[2].number_value));
-        }
-        if (funcName == "math.log") {
-            return Value::createNumber(Math::Log(inpnum));
-        }
-        if (funcName == "math.log10") {
-            return Value::createNumber(Math::Log10(inpnum));
-        }
-        if (funcName == "math.max") {
-            return Value::createNumber(Math::Max(values2numbers(args)));
-        }
-        if (funcName == "math.min") {
-            return Value::createNumber(Math::Min(values2numbers(args)));
-        }
-        if (funcName == "math.pow") {
-            return Value::createNumber(Math::Pow(inpnum, args[1].number_value));
-        }
-        if (funcName == "math.random") {
+        case "size"_h: return functionSTAT(args);
+        case "config"_h: return functionCONFIG(args);
+
+        case "JavaScript.isAllowed"_h: return booleanToValue(allowJavaScript);
+        case "Luau.isAllowed"_h: return booleanToValue(allowLuau);
+
+        case "math.random"_h: {
             if (args.empty()) return Value::createNumber(Math::Random());
-            if (args.size() == 1) return Value::createNumber(Math::Random(0, inpnum));
-            return Value::createNumber(Math::Random(inpnum, args[1].number_value));
+            if (args.size() == 1) return Value::createNumber(Math::Random(0, args[0].number_value));
+            return Value::createNumber(Math::Random(args[0].number_value, args[1].number_value));
         }
-        if (funcName == "math.round") {
-            return Value::createNumber(Math::Round(inpnum));
-        }
-        if (funcName == "math.sign") {
-            return Value::createNumber(Math::Sign(inpnum));
-        }
-        if (funcName == "math.sin") {
-            return Value::createNumber(Math::Sin(inpnum));
-        }
-        if (funcName == "math.sqrt") {
-            return Value::createNumber(Math::Sqrt(inpnum));
-        }
-        if (funcName == "math.square") {
-            return Value::createNumber(inpnum * inpnum);
-        }
-        if (funcName == "math.tan") {
-            return Value::createNumber(Math::Tan(inpnum));
-        }
-        if (funcName == "math.toDegrees") {
-            return Value::createNumber(Math::ToDegrees(inpnum));
-        }
-        if (funcName == "math.toRadians") {
-            return Value::createNumber(Math::ToRadians(inpnum));
-        }
-        if (funcName == "parseNum" || funcName == "parseInt") {
-            std::string str = args[0].toString();
-            int radix = 10;
-
-            if (args.size() > 1) {
-                radix = static_cast<int>(args[1].toNumber());
-                if (radix < 2 || radix > 64) {
-                    throw std::runtime_error(funcName + ": Radix must be between 2 and 64");
-                }
-            }
-
-            if (radix == 10) return numberToValue(
-                funcName == "parseNum" ? args[0].toNumber() : static_cast<double>(static_cast<int>(args[0].toNumber()))
-            );
-
-            try {
-                double result = Math::ParseNum(str, radix);
-                return Value::createNumber(
-                    funcName == "parseNum" ? result : static_cast<double>(static_cast<int>(result))
-                );
-            } catch (const std::exception& e) {
-                throw std::runtime_error(funcName + ": " + std::string(e.what()));
-            }
-        }
-        if (funcName == "String::graphemeReverse" || (
-            chartype == CharType::GRAPHEME && funcName == "String::reverse"
-        )) {
-            return stringToValue(Unicode::GraphemeReverse(args[0].toString()));
-        }
-        if (funcName == "String::trim") {
-            return stringToValue(String::Trim(args[0].toString()));
-        }
-        if (funcName == "String::repeat") {
-            size_t count = 1;
-            if (args.size() > 1) {
-                count = static_cast<size_t>(args[1].toNumber());
-            }
-
-            return stringToValue(String::Repeat(args[0].toString(), count));
-        }
-        if (funcName == "String::graphemeSlice" || (
-            chartype == CharType::GRAPHEME && funcName == "String::slice"
-        )) {
-            std::string str = args[0].toString();
-            int64_t start = 0;
-            int64_t end = static_cast<int64_t>(str.length());
-
-            if (args.size() > 1) {
-                start = static_cast<int64_t>(args[1].toNumber());
-                if (args.size() > 2) {
-                    end = static_cast<int64_t>(args[2].toNumber());
-                }
-            }
-
-            return stringToValue(Unicode::GraphemeSlice(str, start, end));
-        }
-        if (funcName == "String::startsWith") {
-            if (args.size() < 2) {
-                return booleanToValue(false);
-            }
-            return booleanToValue(String::StartsWith(args[0].toString(), args[1].toString()));
-        }
-        if (funcName == "String::endsWith") {
-            if (args.size() < 2) {
-                return booleanToValue(false);
-            }
-            return booleanToValue(String::EndsWith(args[0].toString(), args[1].toString()));
-        }
-        if (funcName == "String::split") {
-            if (args.size() < 2) {
-                std::vector<std::string> result( {args[0].toString()} );
-                return stringArray(result);
-            }
-            if (args[1].toString() == "") {
-                size_t len = static_cast<size_t>(executeFunction("String::length", {args[0]}, startPos).toNumber());
-                std::vector<std::string> result;
-                for (size_t i = 0; i < len; i++) {
-                    result.push_back(executeFunction("String::slice", {
-                        args[0],
-                        numberToValue(static_cast<double>(i)),
-                        numberToValue(static_cast<double>(i + 1))
-                    }, startPos).toString());
-                }
-                return stringArray(result);
-            }
-            return stringArray(String::Split(args[0].toString(), args[1].toString()));
-        }
-        if (funcName == "String::codePointReverse" || (
-            chartype == CharType::CODEPOINT && funcName == "String::reverse"
-        )) {
-            return stringToValue(Unicode::CodePointReverse(args[0].toString()));
-        }
-        if (funcName == "String::byteReverse" || (
-            chartype == CharType::BYTE && funcName == "String::reverse"
-        )) {
-            return stringToValue(Unicode::ByteReverse(args[0].toString()));
-        }
-        if (funcName == "String::codePointSlice" || (
-            chartype == CharType::CODEPOINT && funcName == "String::slice"
-        )) {
-            std::string str = args[0].toString();
-            int64_t start = 0;
-            int64_t end = static_cast<int64_t>(str.length());
-
-            if (args.size() > 1) {
-                start = static_cast<int64_t>(args[1].toNumber());
-                if (args.size() > 2) {
-                    end = static_cast<int64_t>(args[2].toNumber());
-                }
-            }
-
-            return stringToValue(Unicode::CodePointSlice(str, start, end));
-        }
-        if (funcName == "String::byteSlice" || (
-            chartype == CharType::BYTE && funcName == "String::slice"
-        )) {
-            std::string str = args[0].toString();
-            int64_t start = 0;
-            int64_t end = static_cast<int64_t>(str.length());
-
-            if (args.size() > 1) {
-                start = static_cast<int64_t>(args[1].toNumber());
-                if (args.size() > 2) {
-                    end = static_cast<int64_t>(args[2].toNumber());
-                }
-            }
-
-            return stringToValue(Unicode::ByteSlice(str, start, end));
-        }
-        if (funcName == "String::lower") {
-            return stringToValue(Unicode::Lower(args[0].toString()));
-        }
-        if (funcName == "String::upper") {
-            return stringToValue(Unicode::Upper(args[0].toString()));
-        }
-        if (funcName == "String::normalize") {
-            if (args.size() < 2) throw std::runtime_error("Expected form");
-            std::string form = Unicode::Lower(args[1].toString());
-            std::string original = args[0].toString();
-            if (form == "nfc") {
-                return stringToValue(Unicode::NormalizeNFC(original));
-            } else if (form == "nfd") {
-                return stringToValue(Unicode::NormalizeNFD(original));
-            } else if (form == "nfkc") {
-                return stringToValue(Unicode::NormalizeNFKC(original));
-            } else if (form == "nfkd") {
-                return stringToValue(Unicode::NormalizeNFKD(original));
-            } else throw std::runtime_error("Unknown form \"" + args[1].toString() + "\"");
-        }
-        if (funcName == "String::graphemeLength" || (
-            chartype == CharType::GRAPHEME && funcName == "String::length"
-        )) {
-            return Value::createNumber(static_cast<double>(Unicode::GraphemeLength(args[0].toString())));
-        }
-        if (funcName == "String::codePointLength" || (
-            chartype == CharType::CODEPOINT && funcName == "String::length"
-        )) {
-            return Value::createNumber(static_cast<double>(Unicode::CodePointLength(args[0].toString())));
-        }
-        if (funcName == "String::size" || funcName == "String::byteLength" || (
-            chartype == CharType::BYTE && funcName == "String::length"
-        )) {
-            return Value::createNumber(static_cast<double>(Unicode::ByteLength(args[0].toString())));
-        }
-        if (funcName == "String::equalsIgnoreCase") {
-            std::string right;
-            if (args.size() < 2) {
-                right = "";
-            } else {
-                right = args[1].toString();
-            }
-            return booleanToValue(Unicode::EqualsIgnoreCase(args[0].toString(), right));
-        }
-        if (funcName == "String::isWhitespace") {
-            return booleanToValue(Unicode::IsWhitespace(args[0].toString()));
-        }
-        if (funcName == "JUSTC.parse") {
-            return functionJUSTC2(args[0].toString(), false, startPos);
-        }
-        if (funcName == "JUSTC.execute") {
-            return functionJUSTC2(args[0].toString(), true, startPos);
-        }
-        if (funcName == "JSON.parse") {
-            return functionJSON(args);
-        }
-        if (funcName == "JavaScript" || funcName == "JavaScript.execute") {
-            if (allowJavaScript) {
-                #ifdef __EMSCRIPTEN__
-
-                    Value result = runJavaScript(args[0].toString(), Utility::position(startPos, input), true);
-                    addLog("JAVASCRIPT", Utility::value2string(result), startPos);
-                    result.name = funcName + "(...)";
-                    return result;
-
-                #elif !defined(_MSC_VER)
-
-                    std::pair<std::string, bool> jsresult = JavaScript::Eval(args[0].toString());
-                    if (jsresult.second) {
-                        throw std::runtime_error("JavaScript error at " + Utility::position(startPos, input) + ":\n" + jsresult.first);
-                    } else {
-                        addLog("JAVASCRIPT", jsresult.first, startPos);
-                    }
-                    Value result = stringToValue(jsresult.first);
-                    result.name = funcName + "(...)";
-                    return result;
-
-                #else
-
-                    throw std::runtime_error("Cannot run JavaScript due to OS limitations. Attempt to execute JavaScript code");
-
-                #endif
-            } else {
-                throw std::runtime_error("JavaScript disallowed - Cannot run JavaScript \"" + args[0].toString() + "\"");
-            }
-        }
-        if (funcName == "Luau" || funcName == "Luau.execute") {
-            #ifndef JUSTC_NOLUAU
-                if (allowLuau) {
-                    std::pair<std::string, int> luauresult = RunLuau::runScriptWithResult(args[0].toString());
-                    Value result;
-
-                    switch (luauresult.second) {
-                        case 1: // number
-                            result = Value::createNumber(parseNumber(luauresult.first));
-                            result.type = DataType::NUMBER;
-                            break;
-                        case 2: // boolean
-                            result = Value::createBoolean(luauresult.first == "true");
-                            result.type = DataType::BOOLEAN;
-                            break;
-                        case 3: // null
-                            result = Value::createNull();
-                            result.type = DataType::NULL_TYPE;
-                            break;
-                        case 4: case 5: // object/array
-                            result = isolated(luauresult.first, false, startPos, nullptr, "Luau Table output to JUSTC converter");
-                            result.type = luauresult.second == 4 ? DataType::JSON_OBJECT : DataType::JSON_ARRAY;
-                            break;
-                        default: // string/function/thread/userdata
-                            result = stringToValue(luauresult.first);
-                            result.type = DataType::STRING;
-                            break;
-                    }
-
-                    addLog("LUAU", Utility::value2string(result), startPos);
-                    result.name = funcName + "(...)";
-                    return result;
-                } else {
-                    throw std::runtime_error("Luau disallowed - Cannot run Luau \"" + args[0].toString() + "\"");
-                }
-            #else
-                throw std::runtime_error("To run Luau, use the standard JUSTC build. The current build excludes Luau.");
-            #endif
-        }
-        if (funcName == "JUSTO" || funcName == "JUSTO.parse") {
-            return functionJUSTO(args);
-        }
-        if (funcName == "JUSTO.stringify") {
-            return toJUSTO(args);
-        }
-        if (funcName == "JUSTC.stringify") {
-            Value result = stringToValue(Utility::stringifyValue(args[0]));
-            result.type = DataType::STRING;
-            return result;
-        }
-        if (funcName == "Luau.compile") {
-            #ifndef JUSTC_NOLUAU
-                if (allowLuau) {
-                    std::string error;
-                    return booleanToValue(RunLuau::compileScript(args[0].toString(), error));
-                } else {
-                    return booleanToValue(false);
-                }
-            #else
-                throw std::runtime_error("To run Luau, use the standard JUSTC build. The current build excludes Luau.");
-            #endif
-        }
-        if (funcName == "Array::join") {
-            std::stringstream ss;
-            std::string sep = ",";
-            if (args.size() > 1) sep = args[1].toString();
-            bool first = true;
-            for (Value val : args[0].array_elements) {
-                if (!first) ss << sep;
-                ss << val.toString();
-                first = false;
-            }
-            return stringToValue(ss.str());
-        }
-        if (funcName == "Array::includes") {
-            if (args.size() < 2) return booleanToValue(false);
-            bool includes = false;
-            for (Value val : args[0].array_elements) {
-                includes = Utility::compareValues(val, args[1]);
-                if (includes) break;
-            }
-            return booleanToValue(includes);
-        }
-        if (funcName == "Array::indexOf") {
-            if (args.size() < 2) throw std::runtime_error("Expected value");
-            for (size_t i = 0; i < args[0].array_elements.size(); i++) {
-                if (Utility::compareValues(args[0].array_elements[i], args[1])) return Value::createNumber(static_cast<double>(i));
-            }
-            throw std::runtime_error("Value not found in array");
-        }
-        if (funcName == "Array::lastIndexOf") {
-            if (args.size() < 2) throw std::runtime_error("Expected value");
-            for (size_t i = args[0].array_elements.size() - 1; i >= 0; i--) {
-                if (Utility::compareValues(args[0].array_elements[i], args[1])) return Value::createNumber(static_cast<double>(i));
-            }
-            throw std::runtime_error("Value not found in array");
-        }
-        if (funcName == "Array::reverse") {
-            std::vector<Value> arr = args[0].array_elements;
-            std::reverse(arr.begin(), arr.end());
-
-            Value result = Value::createJsonArray(arr);
-            result.name = "Array";
-            return result;
-        }
-        if (funcName == "Array::forEach") {
-            if (args.size() < 2 || args[1].type != DataType::FUNCTION) throw std::runtime_error("Expected function");
-            Value lastResult = Value::createNull();
-            lastResult.type = DataType::NULL_TYPE;
-
-            for (size_t i = 0; i < args[0].array_elements.size(); i++) {
-                lastResult = callFunction(args[1], {
-                    args[0].array_elements[i], 
-                    Value::createNumber(static_cast<double>(i)),
-                    args[0]
-                }, startPos, doExecute);
-            }
-
-            return lastResult;
-        }
-        if (funcName == "Array::filter") {
-            if (args.size() < 2 || args[1].type != DataType::FUNCTION) throw std::runtime_error("Expected function");
-            std::vector<Value> arr;
-            
-            for (size_t i = 0; i < args[0].array_elements.size(); i++) {
-                if (callFunction(args[1], {
-                    args[0].array_elements[i], 
-                    Value::createNumber(static_cast<double>(i)),
-                    args[0]
-                }, startPos, doExecute).toBoolean()) arr.push_back(args[0].array_elements[i]);
-            }
-
-            Value result = Value::createJsonArray(arr);
-            result.name = "Array";
-            return result;
-        }
-        if (funcName == "Array::push") {
-            if (args.size() < 2) throw std::runtime_error("Expected value");
-            if (args[0].type != DataType::JSON_ARRAY) throw std::runtime_error("Expected array");
-
-            if (args[0].isVariable) {
-                auto& arr = variables[args[0].variable].array_elements;
-                arr.reserve(arr.size() + args.size() - 1);
-                for (size_t i = 1; i < args.size(); i++) {
-                    arr.push_back(args[i]);
-                }
-                return variables[args[0].variable];
-            } else {
-                std::vector<Value> arr;
-                arr.reserve(args[0].array_elements.size() + args.size() - 1);
-                arr.insert(
-                    arr.end(),
-                    std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).begin()),
-                    std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).end())
-                );
-                for (size_t i = 1; i < args.size(); i++) {
-                    arr.push_back(args[i]);
-                }
-                Value result = Value::createJsonArray(std::move(arr));
-                result.name = "Array";
-                return result;
-            }
-        }
-        if (funcName == "Array::unshift") {
-            if (args.size() < 2) throw std::runtime_error("Expected value");
-            if (args[0].type != DataType::JSON_ARRAY) throw std::runtime_error("Expected array");
-
-            if (args[0].isVariable) {
-                auto& arr = variables[args[0].variable].array_elements;
-                arr.reserve(arr.size() + args.size() - 1);
-                arr.insert(arr.begin(), args.begin() + 1, args.end());
-                return variables[args[0].variable];
-            } else {
-                std::vector<Value> arr;
-                arr.reserve(args[0].array_elements.size() + args.size() - 1);
-                arr.insert(arr.end(), args.begin() + 1, args.end());
-                arr.insert(
-                    arr.end(),
-                    std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).begin()),
-                    std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).end())
-                );
-                Value result = Value::createJsonArray(std::move(arr));
-                result.name = "Array";
-                return result;
-            }
-        }
-        if (funcName == "Element::render") {
-            return Value::createString(renderJSX(args[0]));
-        }
-        if (funcName == "Window") {
+        case "Window"_h: {
             #ifndef __EMSCRIPTEN__
                 hasWindow = true;
                 std::vector<Value> defArgs( {Value::createJsonObject({})} );
@@ -4390,886 +3869,7 @@ Value Parser::executeFunction(const std::string& funcName, const std::vector<Val
                 throw std::runtime_error("JUSTC Window is not supported in WebAssembly builds.");
             #endif
         }
-        if (funcName == "Set") {
-            Value result;
-            result.type = DataType::SET;
-            std::unordered_set<Value> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.insert(val.toPrimitive());
-            }
-            result.setComplexData(arr);
-            result.name = "Set";
-            return result;
-        }
-        if (funcName == "Map") {
-            Value result;
-            result.type = DataType::MAP;
-            std::unordered_map<Value, Value> map;
-            result.setComplexData(map);
-            result.name = "Map";
-            return result;
-        }
-        if (funcName == "Int8Array") {
-            Value result;
-            result.type = DataType::INT8_ARRAY;
-            std::vector<int8_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<int8_t>());
-            }
-            result.setComplexData(arr);
-            result.name = "Int8 Array";
-            return result;
-        }
-        if (funcName == "Int16Array") {
-            Value result;
-            result.type = DataType::INT16_ARRAY;
-            std::vector<int16_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<int16_t>());
-            }
-            result.setComplexData(arr);
-            result.name = "Int16 Array";
-            return result;
-        }
-        if (funcName == "Int32Array") {
-            Value result;
-            result.type = DataType::INT32_ARRAY;
-            std::vector<int32_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<int32_t>());
-            }
-            result.setComplexData(arr);
-            result.name = "Int32 Array";
-            return result;
-        }
-        if (funcName == "Int64Array") {
-            Value result;
-            result.type = DataType::INT64_ARRAY;
-            std::vector<int64_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<int64_t>());
-            }
-            result.setComplexData(arr);
-            result.name = "Int32 Array";
-            return result;
-        }
-        if (funcName == "UInt8Array" || funcName == "CUInt8Array") {
-            Value result;
-            result.type = funcName == "UInt8Array" ? DataType::UINT8_ARRAY : DataType::CUINT8_ARRAY;
-            std::vector<uint8_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<uint8_t>());
-            }
-            result.setComplexData(arr);
-            result.name = funcName == "UInt8Array" ? "UInt8 Array" : "UInt8 clamped Array";
-            return result;
-        }
-        if (funcName == "UInt16Array" || funcName == "CUInt16Array") {
-            Value result;
-            result.type = funcName == "UInt16Array" ? DataType::UINT16_ARRAY : DataType::CUINT16_ARRAY;
-            std::vector<uint16_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<uint16_t>());
-            }
-            result.setComplexData(arr);
-            result.name = funcName == "UInt16Array" ? "UInt16 Array" : "UInt16 clamped Array";
-            return result;
-        }
-        if (funcName == "UInt32Array" || funcName == "CUInt32Array") {
-            Value result;
-            result.type = funcName == "UInt32Array" ? DataType::UINT32_ARRAY : DataType::CUINT32_ARRAY;
-            std::vector<uint32_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<uint32_t>());
-            }
-            result.setComplexData(arr);
-            result.name = funcName == "UInt32Array" ? "UInt32 Array" : "UInt32 clamped Array";
-            return result;
-        }
-        if (funcName == "UInt64Array" || funcName == "CUInt64Array") {
-            Value result;
-            result.type = funcName == "UInt64Array" ? DataType::UINT64_ARRAY : DataType::CUINT64_ARRAY;
-            std::vector<uint64_t> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<uint64_t>());
-            }
-            result.setComplexData(arr);
-            result.name = funcName == "UInt64Array" ? "UInt64 Array" : "UInt64 clamped Array";
-            return result;
-        }
-        if (funcName == "Float32Array") {
-            Value result;
-            result.type = DataType::FLOAT32_ARRAY;
-            std::vector<float> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<float>());
-            }
-            result.setComplexData(arr);
-            result.name = "Float32 Array";
-            return result;
-        }
-        if (funcName == "Float64Array") {
-            Value result;
-            result.type = DataType::FLOAT64_ARRAY;
-            std::vector<double> arr;
-            arr.reserve(args.size());
-            for (Value val : args) {
-                arr.push_back(val.getNumericValue<double>());
-            }
-            result.setComplexData(arr);
-            result.name = "Float64 Array";
-            return result;
-        }
-        if (funcName == "hash") {
-            std::hash<Value> hasher;
-            uint64_t hash = static_cast<uint64_t>(hasher(args[0]));
-            return Value::createNumberWithType(hash, NumericType::UINT64);
-        }
-        if (funcName == "system.env") {
-            const std::pair<bool, std::string> getEnv = Utility::env(args[0].toString());
-            if (!getEnv.first) return Value::createNull();
-            return Value::createString(getEnv.second);
-        }
-        if (funcName == "Int8Array::compress") {
-            if (args[0].type != DataType::INT8_ARRAY) throw std::runtime_error("Expected Int8 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT8_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int8_t> arr = args[0].getComplexData<std::vector<int8_t>>();
-            std::vector<int8_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressI8(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressI8(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressI8(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressI8(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressI8(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressI8(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressI8(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressI8(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = "Int8 Array";
-            return result;
-        }
-        if (funcName == "Int16Array::compress") {
-            if (args[0].type != DataType::INT16_ARRAY) throw std::runtime_error("Expected Int16 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT16_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int16_t> arr = args[0].getComplexData<std::vector<int16_t>>();
-            std::vector<int16_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressI16(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressI16(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressI16(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressI16(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressI16(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressI16(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressI16(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressI16(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = "Int16 Array";
-            return result;
-        }
-        if (funcName == "Int32Array::compress") {
-            if (args[0].type != DataType::INT32_ARRAY) throw std::runtime_error("Expected Int32 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT32_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int32_t> arr = args[0].getComplexData<std::vector<int32_t>>();
-            std::vector<int32_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressI32(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressI32(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressI32(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressI32(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressI32(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressI32(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressI32(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressI32(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = "Int32 Array";
-            return result;
-        }
-        if (funcName == "Int64Array::compress") {
-            if (args[0].type != DataType::INT64_ARRAY) throw std::runtime_error("Expected Int64 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT64_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int64_t> arr = args[0].getComplexData<std::vector<int64_t>>();
-            std::vector<int64_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressI64(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressI64(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressI64(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressI64(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressI64(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressI64(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressI64(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressI64(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = "Int64 Array";
-            return result;
-        }
-        if (funcName == "UInt8Array::compress" || funcName == "CUInt8Array::compress") {
-            DataType t = funcName == "UInt8Array::compress" ? DataType::UINT8_ARRAY : DataType::CUINT8_ARRAY;
-            std::string n = "UInt8 " + std::string(t == DataType::CUINT8_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint8_t> arr = args[0].getComplexData<std::vector<uint8_t>>();
-            std::vector<uint8_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressU8(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressU8(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressU8(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressU8(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressU8(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressU8(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressU8(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressU8(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "UInt16Array::compress" || funcName == "CUInt16Array::compress") {
-            DataType t = funcName == "UInt16Array::compress" ? DataType::UINT16_ARRAY : DataType::CUINT16_ARRAY;
-            std::string n = "UInt16 " + std::string(t == DataType::CUINT16_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint16_t> arr = args[0].getComplexData<std::vector<uint16_t>>();
-            std::vector<uint16_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressU16(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressU16(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressU16(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressU16(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressU16(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressU16(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressU16(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressU16(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "UInt32Array::compress" || funcName == "CUInt32Array::compress") {
-            DataType t = funcName == "UInt32Array::compress" ? DataType::UINT32_ARRAY : DataType::CUINT32_ARRAY;
-            std::string n = "UInt32 " + std::string(t == DataType::CUINT32_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint32_t> arr = args[0].getComplexData<std::vector<uint32_t>>();
-            std::vector<uint32_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressU32(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressU32(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressU32(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressU32(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressU32(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressU32(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressU32(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressU32(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "UInt64Array::compress" || funcName == "CUInt64Array::compress") {
-            DataType t = funcName == "UInt64Array::compress" ? DataType::UINT64_ARRAY : DataType::CUINT64_ARRAY;
-            std::string n = "UInt64 " + std::string(t == DataType::CUINT64_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint64_t> arr = args[0].getComplexData<std::vector<uint64_t>>();
-            std::vector<uint64_t> compressed;
-
-            int lvl = 6;
-            if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
-
-            if (alg == "zlib") compressed = ZLIB::CompressU64(arr, lvl);
-            else if (alg == "gzip") compressed = GZIP::CompressU64(arr, lvl);
-            else if (alg == "bzip2") compressed = BZIP2::CompressU64(arr, lvl);
-            else if (alg == "lzma") compressed = LZMA::CompressU64(arr, lvl);
-            else if (alg == "zstd") compressed = ZSTD::CompressU64(arr, lvl);
-            else if (alg == "lz4") compressed = LZ4::CompressU64(arr, lvl);
-            else if (alg == "snappy") compressed = SNAPPY::CompressU64(arr, lvl);
-            else if (alg == "deflate") compressed = DEFLATE::CompressU64(arr, lvl);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(compressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "Int8Array::decompress") {
-            if (args[0].type != DataType::INT8_ARRAY) throw std::runtime_error("Expected Int8 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT8_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int8_t> arr = args[0].getComplexData<std::vector<int8_t>>();
-            std::vector<int8_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressI8(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressI8(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressI8(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressI8(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressI8(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressI8(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressI8(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressI8(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = "Int8 Array";
-            return result;
-        }
-        if (funcName == "Int16Array::decompress") {
-            if (args[0].type != DataType::INT16_ARRAY) throw std::runtime_error("Expected Int16 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT16_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int16_t> arr = args[0].getComplexData<std::vector<int16_t>>();
-            std::vector<int16_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressI16(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressI16(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressI16(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressI16(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressI16(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressI16(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressI16(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressI16(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = "Int16 Array";
-            return result;
-        }
-        if (funcName == "Int32Array::decompress") {
-            if (args[0].type != DataType::INT32_ARRAY) throw std::runtime_error("Expected Int32 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT32_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int32_t> arr = args[0].getComplexData<std::vector<int32_t>>();
-            std::vector<int32_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressI32(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressI32(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressI32(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressI32(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressI32(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressI32(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressI32(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressI32(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = "Int32 Array";
-            return result;
-        }
-        if (funcName == "Int64Array::decompress") {
-            if (args[0].type != DataType::INT64_ARRAY) throw std::runtime_error("Expected Int64 Array");
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = DataType::INT64_ARRAY;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<int64_t> arr = args[0].getComplexData<std::vector<int64_t>>();
-            std::vector<int64_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressI64(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressI64(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressI64(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressI64(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressI64(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressI64(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressI64(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressI64(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = "Int64 Array";
-            return result;
-        }
-        if (funcName == "UInt8Array::decompress" || funcName == "CUInt8Array::decompress") {
-            DataType t = funcName == "UInt8Array::compress" ? DataType::UINT8_ARRAY : DataType::CUINT8_ARRAY;
-            std::string n = "UInt8 " + std::string(t == DataType::CUINT8_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint8_t> arr = args[0].getComplexData<std::vector<uint8_t>>();
-            std::vector<uint8_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressU8(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressU8(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressU8(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressU8(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressU8(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressU8(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressU8(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressU8(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "UInt16Array::decompress" || funcName == "CUInt16Array::decompress") {
-            DataType t = funcName == "UInt16Array::compress" ? DataType::UINT16_ARRAY : DataType::CUINT16_ARRAY;
-            std::string n = "UInt16 " + std::string(t == DataType::CUINT16_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint16_t> arr = args[0].getComplexData<std::vector<uint16_t>>();
-            std::vector<uint16_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressU16(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressU16(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressU16(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressU16(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressU16(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressU16(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressU16(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressU16(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "UInt32Array::decompress" || funcName == "CUInt32Array::decompress") {
-            DataType t = funcName == "UInt32Array::compress" ? DataType::UINT32_ARRAY : DataType::CUINT32_ARRAY;
-            std::string n = "UInt32 " + std::string(t == DataType::CUINT32_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint32_t> arr = args[0].getComplexData<std::vector<uint32_t>>();
-            std::vector<uint32_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressU32(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressU32(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressU32(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressU32(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressU32(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressU32(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressU32(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressU32(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "UInt64Array::decompress" || funcName == "CUInt64Array::decompress") {
-            DataType t = funcName == "UInt64Array::compress" ? DataType::UINT64_ARRAY : DataType::CUINT64_ARRAY;
-            std::string n = "UInt64 " + std::string(t == DataType::CUINT64_ARRAY ? "clamped " : "") + "Array";
-
-            if (args[0].type != t) throw std::runtime_error("Expected " + n);
-            if (args.size() < 2) throw std::runtime_error("Expected algorithm");
-            Value result;
-            result.type = t;
-            std::string alg = Unicode::Lower(args[1].toString());
-            const std::vector<uint64_t> arr = args[0].getComplexData<std::vector<uint64_t>>();
-            std::vector<uint64_t> decompressed;
-
-            if (alg == "zlib") decompressed = ZLIB::DecompressU64(arr);
-            else if (alg == "gzip") decompressed = GZIP::DecompressU64(arr);
-            else if (alg == "bzip2") decompressed = BZIP2::DecompressU64(arr);
-            else if (alg == "lzma") decompressed = LZMA::DecompressU64(arr);
-            else if (alg == "zstd") decompressed = ZSTD::DecompressU64(arr);
-            else if (alg == "lz4") decompressed = LZ4::DecompressU64(arr);
-            else if (alg == "snappy") decompressed = SNAPPY::DecompressU64(arr);
-            else if (alg == "deflate") decompressed = DEFLATE::DecompressU64(arr);
-            else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
-
-            result.setComplexData(decompressed);
-            result.name = n;
-            return result;
-        }
-        if (funcName == "Map::set") {
-            if (args.size() < 2) throw std::runtime_error("Expected key");
-            if (args.size() < 3) throw std::runtime_error("Expected value");
-            if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
-
-            if (args[0].isVariable) {
-                std::unordered_map<Value, Value> map;
-                if (args[0].complex_value) {
-                    try {
-                        map = args[0].getComplexData<std::unordered_map<Value, Value>>();
-                    } catch (...) {
-                        map = std::unordered_map<Value, Value>();
-                    }
-                }
-                map[args[1].toPrimitive()] = args[2];
-                variables[args[0].variable].setComplexData(map);
-                return variables[args[0].variable];
-            } else {
-                std::unordered_map<Value, Value> map;
-                if (args[0].complex_value) {
-                    try {
-                        map = args[0].getComplexData<std::unordered_map<Value, Value>>();
-                    } catch (...) {
-                        map = std::unordered_map<Value, Value>();
-                    }
-                }
-                map[args[1].toPrimitive()] = args[2];
-                Value result = args[0];
-                result.setComplexData(map);
-                return result;
-            }
-        }
-        if (funcName == "Map::get") {
-            if (args.size() < 2) throw std::runtime_error("Expected key");
-            if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
-
-            std::unordered_map<Value, Value> map;
-            if (args[0].isVariable) {
-                map = variables[args[0].variable].getComplexData<std::unordered_map<Value, Value>>();
-            } else {
-                map = args[0].getComplexData<std::unordered_map<Value, Value>>();
-            }
-            
-            auto it = map.find(args[1].toPrimitive());
-            if (it != map.end()) {
-                return it->second;
-            }
-            return Value::createNull();
-        }
-        if (funcName == "Map::has") {
-            if (args.size() < 2) throw std::runtime_error("Expected key");
-            if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
-
-            std::unordered_map<Value, Value> map;
-            if (args[0].isVariable) {
-                map = variables[args[0].variable].getComplexData<std::unordered_map<Value, Value>>();
-            } else {
-                map = args[0].getComplexData<std::unordered_map<Value, Value>>();
-            }
-
-            auto it = map.find(args[1].toPrimitive());
-            if (it != map.end()) {
-                return Value::createBoolean(true);
-            }
-            return Value::createBoolean(false);
-        }
-        if (funcName == "Map::delete") {
-            if (args.size() < 2) throw std::runtime_error("Expected key");
-            if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
-
-            if (args[0].isVariable) {
-                std::unordered_map<Value, Value> map = variables[args[0].variable].getComplexData<std::unordered_map<Value, Value>>();
-                map.erase(args[1].toPrimitive());
-                variables[args[0].variable].setComplexData(map);
-                return variables[args[0].variable];
-            } else {
-                std::unordered_map<Value, Value> map = args[0].getComplexData<std::unordered_map<Value, Value>>();
-                map.erase(args[1].toPrimitive());
-                Value result = args[0];
-                result.setComplexData(map);
-                return result;
-            }
-        }
-        if (funcName == "Map::clear") {
-            if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
-
-            std::unordered_map<Value, Value> map;
-            if (args[0].isVariable) {
-                variables[args[0].variable].setComplexData(map);
-                return variables[args[0].variable];
-            } else {
-                Value result = args[0];
-                result.setComplexData(map);
-                result.name = "Map";
-                return result;
-            }
-        }
-        if (funcName == "Set::add") {
-            if (args.size() < 2) throw std::runtime_error("Expected value");
-            if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
-
-            if (args[0].isVariable) {
-                std::unordered_set<Value> set;
-                if (args[0].complex_value) {
-                    try {
-                        set = args[0].getComplexData<std::unordered_set<Value>>();
-                    } catch (...) {
-                        set = std::unordered_set<Value>();
-                    }
-                }
-                set.insert(args[1].toPrimitive());
-                variables[args[0].variable].setComplexData(set);
-                return variables[args[0].variable];
-            } else {
-                std::unordered_set<Value> set;
-                if (args[0].complex_value) {
-                    try {
-                        set = args[0].getComplexData<std::unordered_set<Value>>();
-                    } catch (...) {
-                        set = std::unordered_set<Value>();
-                    }
-                }
-                set.insert(args[1].toPrimitive());
-                Value result = args[0];
-                result.setComplexData(set);
-                return result;
-            }
-        }
-        if (funcName == "Set::has") {
-            if (args.size() < 2) throw std::runtime_error("Expected value");
-            if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
-
-            std::unordered_set<Value> set;
-            if (args[0].isVariable) {
-                set = variables[args[0].variable].getComplexData<std::unordered_set<Value>>();
-            } else {
-                set = args[0].getComplexData<std::unordered_set<Value>>();
-            }
-
-            auto it = set.find(args[1].toPrimitive());
-            if (it != set.end()) {
-                return Value::createBoolean(true);
-            }
-            return Value::createBoolean(false);
-        }
-        if (funcName == "Set::delete") {
-            if (args.size() < 2) throw std::runtime_error("Expected value");
-            if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
-
-            if (args[0].isVariable) {
-                std::unordered_set<Value> set = variables[args[0].variable].getComplexData<std::unordered_set<Value>>();
-                set.erase(args[1].toPrimitive());
-                variables[args[0].variable].setComplexData(set);
-                return variables[args[0].variable];
-            } else {
-                std::unordered_set<Value> set = args[0].getComplexData<std::unordered_set<Value>>();
-                set.erase(args[1].toPrimitive());
-                Value result = args[0];
-                result.setComplexData(set);
-                return result;
-            }
-        }
-        if (funcName == "Set::clear") {
-            if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
-
-            std::unordered_set<Value> set;
-            if (args[0].isVariable) {
-                variables[args[0].variable].setComplexData(set);
-                return variables[args[0].variable];
-            } else {
-                Value result = args[0];
-                result.setComplexData(set);
-                result.name = "Set";
-                return result;
-            }
-        }
-        if (funcName == "Object::size") {
-            uint64_t size = static_cast<uint64_t>(args[0].properties.size());
-            return Value::createNumberWithType(size, NumericType::UINT64);
-        }
-        if (funcName == "Array::size") {
-            uint64_t size = static_cast<uint64_t>(args[0].array_elements.size());
-            return Value::createNumberWithType(size, NumericType::UINT64);
-        }
-        if (funcName == "Map::size" || funcName == "Set::size") {
-            if (args[0].complex_value) {
-                if (funcName == "Map::size") {
-                    auto map = args[0].getComplexData<std::unordered_map<Value, Value>>();
-                    return Value::createNumberWithType(static_cast<uint64_t>(map.size()), NumericType::UINT64);
-                } else {
-                    auto set = args[0].getComplexData<std::unordered_set<Value>>();
-                    return Value::createNumberWithType(static_cast<uint64_t>(set.size()), NumericType::UINT64);
-                }
-            }
-            return Value::createNumberWithType(static_cast<uint64_t>(0), NumericType::UINT64);
-        }
-        if (funcName == "Int8Array::size" || funcName == "Int16Array::size" || 
-            funcName == "Int32Array::size" || funcName == "Int64Array::size" ||
-            funcName == "UInt8Array::size" || funcName == "UInt16Array::size" || 
-            funcName == "UInt32Array::size" || funcName == "UInt64Array::size" ||
-            funcName == "CUInt8Array::size" || funcName == "CUInt16Array::size" || 
-            funcName == "CUInt32Array::size" || funcName == "CUInt64Array::size" ||
-            funcName == "Float32Array::size" || funcName == "Float64Array::size"
-        ) {
-            if (args[0].complex_value) {
-                try {
-                    if (args[0].type == DataType::INT8_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<int8_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::INT16_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<int16_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::INT32_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<int32_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::INT64_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<int64_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::UINT8_ARRAY || args[0].type == DataType::CUINT8_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<uint8_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::UINT16_ARRAY || args[0].type == DataType::CUINT16_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<uint16_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::UINT32_ARRAY || args[0].type == DataType::CUINT32_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<uint32_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::UINT64_ARRAY || args[0].type == DataType::CUINT64_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<uint64_t>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::FLOAT32_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<float>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    } else if (args[0].type == DataType::FLOAT64_ARRAY) {
-                        auto vec = args[0].getComplexData<std::vector<double>>();
-                        return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
-                    }
-                } catch (...) {
-                    return Value::createNumberWithType(static_cast<uint64_t>(0), NumericType::UINT64);
-                }
-            }
-            return Value::createNumberWithType(static_cast<uint64_t>(0), NumericType::UINT64);
-        }
-        if (funcName == "task.sleep") {
-            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(args[0].toNumber())));
-            return Value::createNull();
-        }
-        if (funcName == "Promise") {
-            bool doExec = doExecute;
-            Value result;
-            result.type = DataType::PROMISE;
-            result.setComplexData<Promise>(newPromise([this, args, startPos, doExec](Defer d) {
-                std::thread([this, args, d, startPos, doExec]() {
-                    Value output = Value::createNull();
-                    bool rejected = false;
-                    bool done = false;
-                    
-                    try {
-                        if (args[0].type == DataType::FUNCTION) {
-                            Value resolve = createFunction(
-                                [&done, &output](const std::vector<Value>& args) -> Value {
-                                    if (!done) {
-                                        done = true;
-                                        if (!args.empty()) {
-                                            output = args[0];
-                                        }
-                                    }
-                                    return Value::createNull();
-                                },
-                                "resolve"
-                            );
-                            
-                            Value reject = createFunction(
-                                [&done, &output, &rejected](const std::vector<Value>& args) -> Value {
-                                    if (!done) {
-                                        done = true;
-                                        rejected = true;
-                                        if (!args.empty()) {
-                                            output = args[0];
-                                        }
-                                    }
-                                    return Value::createNull();
-                                },
-                                "reject"
-                            );
-                            
-                            Value funcResult = callFunction(args[0], {resolve, reject}, startPos, doExec);
-                            
-                            if (funcResult.type != DataType::NULL_TYPE && !done) {
-                                done = true;
-                                output = funcResult;
-                            }
-                        } else {
-                            output = args[0];
-                            done = true;
-                        }
-                        
-                        if (rejected) {
-                            d.reject(output);
-                        } else if (done) {
-                            d.resolve(output);
-                        }
-                    } catch (const std::exception& e) {
-                        d.reject(Value::createString(std::string(e.what())));
-                    } catch (...) {
-                        d.reject(Value::createString(std::string("Unknown error in Promise")));
-                    }
-                }).detach();
-            }));
-            result.name = "Promise";
-            promises.push_back(result);
-            return result;
-        }
-        if (funcName == "task.wait") {
+        case "task.wait"_h: {
             std::vector<Promise> proms;
             if (args.empty()) {
                 proms.reserve(promises.size());
@@ -5294,82 +3894,1416 @@ Value Parser::executeFunction(const std::string& funcName, const std::vector<Val
             all(proms).then([](std::vector<Promise> results) {});
             return Value::createNull();
         }
-        if (funcName == "task.race") {
-            std::vector<Promise> proms;
-            if (args.size() == 1 && args[0].type == DataType::JSON_ARRAY) {
-                proms.reserve(args[0].array_elements.size());
-                for (const Value& prom : args[0].array_elements) {
-                    if (prom.type != DataType::PROMISE) throw std::runtime_error("Expected promise, got " + dataTypeToString(prom.type) + ".");
-                    proms.push_back(prom.getComplexData<Promise>());
-                }
-            } else {
-                proms.reserve(args.size());
-                for (const Value& prom : args) {
-                    if (prom.type != DataType::PROMISE) throw std::runtime_error("Expected promise, got " + dataTypeToString(prom.type) + ".");
-                    proms.push_back(prom.getComplexData<Promise>());
-                }
-            }
-            int32_t resultID = -1;
-            race(proms).then([&resultID](int result) {
-                resultID = static_cast<int32_t>(result);
-            });
-            return Value::createNumberWithType(resultID, NumericType::INT32);
-        }
-        if (funcName == "free") {
-            for (const Value& ptr : args) {
-                freePointer(ptr);
-            }
-            return Value::createNull();
-        }
-        if (funcName == "Error") {
-            Value result = stringToValue(args[0].toString());
-            result.type = DataType::ERROR;
-            return result;
-        }
-        if (funcName == "memory.global") {
+        case "memory.global"_h: {
             std::unordered_map<std::string, Value> obj = listGlobals();
             Value result = Value::createJsonObject(obj);
-            result.name = funcName;
+            result.name = "memory.global";
             return result;
         }
-        if (funcName == "memory.classes") {
+        case "memory.classes"_h: {
             std::unordered_map<std::string, Value> obj;
             std::unordered_map<uint64_t, Class> raw = listClasses();
             for (const auto& [key, value] : raw) {
                 obj[Utility::uint64ToHexString(key)] = addClass(key);
             }
             Value result = Value::createJsonObject(obj);
-            result.name = funcName;
+            result.name = "memory.classes";
             return result;
         }
-        if (funcName == "memory.functions") {
+        case "memory.functions"_h: {
             std::unordered_map<std::string, Value> obj;
             std::unordered_map<uint64_t, std::function<Value(const std::vector<Value>&)>> raw = listFunctions();
             for (const auto& [key, value] : raw) {
                 std::string keyHex = Utility::uint64ToHexString(key);
-                Value func = createFunction(value, funcName + "()[\"" + keyHex + "\"]");
+                Value func = createFunction(value, "memory.functions()[\"" + keyHex + "\"]");
                 func.string_value = "[optimized code]";
                 obj[keyHex] = func;
             }
             Value result = Value::createJsonObject(obj);
-            result.name = funcName;
+            result.name = "memory.functions";
             return result;
         }
-        if (funcName == "memory.pointers") {
+        case "memory.pointers"_h: {
             std::unordered_map<std::string, Value> obj;
             std::unordered_map<uint64_t, Value> raw = listPointers();
             for (const auto& [key, value] : raw) {
                 obj[Utility::uint64ToHexString(key)] = value;
             }
             Value result = Value::createJsonObject(obj);
-            result.name = funcName;
+            result.name = "memory.pointers";
             return result;
+        }
+
+        default: break;
+    }
+
+    double inpnum = 0.0;
+    if (args.empty()) {
+        switch (hashed) {
+            case "JUSTC.parse"_h:
+            case "JUSTC.execute"_h: return emptyJUSTC();
+            case "JUSTO.stringify"_h: return stringToValue("");
+            case "JUSTC.stringify"_h: return stringToValue("return.");
+            default: throw std::runtime_error("Expected at least one argument, got 0 at " + Utility::position(startPos, input) + ".");
+        }
+    } else inpnum = args[0].number_value;
+    
+    try {
+        switch (hashed) {
+            case "Binary::toText"_h: return Binary::ToText(args);
+            case "Binary::fromText"_h: return Binary::FromText(args);
+            case "Binary::toDataURL"_h: return Binary::ToDataURL(args);
+            case "Binary::fromDataURL"_h: return Binary::FromDataURL(args);
+            case "Binary::data"_h: return Binary::Data(args);
+
+            case "math.abs"_h: return Value::createNumber(Math::Abs(inpnum));
+            case "math.acos"_h: return Value::createNumber(Math::Acos(inpnum));
+            case "math.asin"_h: return Value::createNumber(Math::Asin(inpnum));
+            case "math.atan"_h: return Value::createNumber(Math::Atan(inpnum));
+            case "math.atan2"_h: return Value::createNumber(Math::Atan2(inpnum, args[1].number_value));
+            case "math.ceil"_h: return Value::createNumber(Math::Ceil(inpnum));
+            case "math.cos"_h: return Value::createNumber(Math::Cos(inpnum));
+            case "math.clamp"_h: return Value::createNumber(Math::Clamp(inpnum, args[1].number_value, args[2].number_value));
+            case "math.cube"_h: return Value::createNumber(inpnum * inpnum * inpnum);
+            case "math.double"_h: return Value::createNumber(inpnum * 2);
+            case "math.exp"_h: return Value::createNumber(Math::Exp(inpnum));
+            case "math.factorial"_h: {
+                int intValue = static_cast<int>(std::round(inpnum));
+                long long res = Math::Factorial(intValue);
+                double outVal = static_cast<double>(res);
+                return Value::createNumber(outVal);
+            }
+            case "math.floor"_h: return Value::createNumber(Math::Floor(inpnum));
+            case "math.hypot"_h: return Value::createNumber(Math::Hypot(inpnum, args[1].number_value));
+            case "math.isPrime"_h: {
+                int intValue = static_cast<int>(std::round(inpnum));
+                return Value::createBoolean(Math::IsPrime(intValue));
+            }
+            case "math.lerp"_h: return Value::createNumber(Math::Lerp(inpnum, args[1].number_value, args[2].number_value));
+            case "math.log"_h: return Value::createNumber(Math::Log(inpnum));
+            case "math.log10"_h: return Value::createNumber(Math::Log10(inpnum));
+            case "math.max"_h: return Value::createNumber(Math::Max(values2numbers(args)));
+            case "math.min"_h: return Value::createNumber(Math::Min(values2numbers(args)));
+            case "math.pow"_h: return Value::createNumber(Math::Pow(inpnum, args[1].number_value));
+            case "math.round"_h: return Value::createNumber(Math::Round(inpnum));
+            case "math.sign"_h: return Value::createNumber(Math::Sign(inpnum));
+            case "math.sin"_h: return Value::createNumber(Math::Sin(inpnum));
+            case "math.sqrt"_h: return Value::createNumber(Math::Sqrt(inpnum));
+            case "math.square"_h: return Value::createNumber(inpnum * inpnum);
+            case "math.tan"_h: return Value::createNumber(Math::Tan(inpnum));
+            case "math.toDegrees"_h: return Value::createNumber(Math::ToDegrees(inpnum));
+            case "math.toRadians"_h: return Value::createNumber(Math::ToRadians(inpnum));
+
+            case "parseNum"_h:
+            case "parseInt"_h: {
+                std::string str = args[0].toString();
+                int radix = 10;
+
+                if (args.size() > 1) {
+                    radix = static_cast<int>(args[1].toNumber());
+                    if (radix < 2 || radix > 64) {
+                        throw std::runtime_error("Radix must be between 2 and 64");
+                    }
+                }
+
+                if (radix == 10) return numberToValue(
+                    hashed == "parseNum"_h ? args[0].toNumber() : static_cast<double>(static_cast<int>(args[0].toNumber()))
+                );
+
+                try {
+                    double result = Math::ParseNum(str, radix);
+                    return Value::createNumber(
+                        hashed == "parseNum"_h ? result : static_cast<double>(static_cast<int>(result))
+                    );
+                } catch (const std::exception& e) {
+                    throw std::runtime_error(std::string(e.what()));
+                }
+            }
+
+            case "String::reverse"_h: {
+                switch (chartype) {
+                    case CharType::GRAPHEME: return functionSTRINGGRAPHEMEREVERSE(args);
+                    case CharType::CODEPOINT: return functionSTRINGCODEPOINTREVERSE(args);
+                    case CharType::BYTE: return functionSTRINGBYTEREVERSE(args);
+                    default: throw std::runtime_error("Invalid charType.");
+                }
+            }
+            case "String::graphemeReverse"_h: return functionSTRINGGRAPHEMEREVERSE(args);
+            case "String::codePointReverse"_h: return functionSTRINGCODEPOINTREVERSE(args);
+            case "String::byteReverse"_h: return functionSTRINGBYTEREVERSE(args);
+
+            case "String::slice"_h: {
+                switch (chartype) {
+                    case CharType::GRAPHEME: return functionSTRINGGRAPHEMESLICE(args);
+                    case CharType::CODEPOINT: return functionSTRINGCODEPOINTSLICE(args);
+                    case CharType::BYTE: return functionSTRINGBYTESLICE(args);
+                    default: throw std::runtime_error("Invalid charType.");
+                }
+            }
+            case "String::graphemeSlice"_h: return functionSTRINGGRAPHEMESLICE(args);
+            case "String::codePointSlice"_h: return functionSTRINGCODEPOINTSLICE(args);
+            case "String::byteSlice"_h: return functionSTRINGBYTESLICE(args);
+
+            case "String::length"_h: {
+                switch (chartype) {
+                    case CharType::GRAPHEME: return functionSTRINGGRAPHEMELENGTH(args);
+                    case CharType::CODEPOINT: return functionSTRINGCODEPOINTLENGTH(args);
+                    case CharType::BYTE: return functionSTRINGBYTELENGTH(args);
+                    default: throw std::runtime_error("Invalid charType.");
+                }
+            }
+            case "String::graphemeLength"_h: return functionSTRINGGRAPHEMELENGTH(args);
+            case "String::codePointLength"_h: return functionSTRINGCODEPOINTLENGTH(args);
+            case "String::byteLength"_h:
+            case "String::size"_h: return functionSTRINGBYTELENGTH(args);
+
+            case "String::trim"_h: return stringToValue(String::Trim(args[0].toString()));
+            case "String::repeat"_h: {
+                size_t count = 1;
+                if (args.size() > 1) {
+                    count = static_cast<size_t>(args[1].toNumber());
+                }
+
+                return stringToValue(String::Repeat(args[0].toString(), count));
+            }
+            case "String::startsWith"_h: {
+                if (args.size() < 2) {
+                    return booleanToValue(false);
+                }
+                return booleanToValue(String::StartsWith(args[0].toString(), args[1].toString()));
+            }
+            case "String::endsWith"_h: {
+                if (args.size() < 2) {
+                    return booleanToValue(false);
+                }
+                return booleanToValue(String::EndsWith(args[0].toString(), args[1].toString()));
+            }
+            case "String::split"_h: {
+                if (args.size() < 2) {
+                    std::vector<std::string> result( {args[0].toString()} );
+                    return stringArray(result);
+                }
+                if (args[1].toString() == "") {
+                    size_t len = static_cast<size_t>(executeFunction("String::length"_h, {args[0]}, startPos).toNumber());
+                    std::vector<std::string> result;
+                    for (size_t i = 0; i < len; i++) {
+                        result.push_back(executeFunction("String::slice"_h, {
+                            args[0],
+                            numberToValue(static_cast<double>(i)),
+                            numberToValue(static_cast<double>(i + 1))
+                        }, startPos).toString());
+                    }
+                    return stringArray(result);
+                }
+                return stringArray(String::Split(args[0].toString(), args[1].toString()));
+            }
+            case "String::lower"_h: return stringToValue(Unicode::Lower(args[0].toString()));
+            case "String::upper"_h: return stringToValue(Unicode::Upper(args[0].toString()));
+            case "String::normalize"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected form");
+                std::string form = Unicode::Lower(args[1].toString());
+                std::string original = args[0].toString();
+                if (form == "nfc") {
+                    return stringToValue(Unicode::NormalizeNFC(original));
+                } else if (form == "nfd") {
+                    return stringToValue(Unicode::NormalizeNFD(original));
+                } else if (form == "nfkc") {
+                    return stringToValue(Unicode::NormalizeNFKC(original));
+                } else if (form == "nfkd") {
+                    return stringToValue(Unicode::NormalizeNFKD(original));
+                } else throw std::runtime_error("Unknown form \"" + args[1].toString() + "\"");
+            }
+            case "String::equalsIgnoreCase"_h: {
+                std::string right;
+                if (args.size() < 2) {
+                    right = "";
+                } else {
+                    right = args[1].toString();
+                }
+                return booleanToValue(Unicode::EqualsIgnoreCase(args[0].toString(), right));
+            }
+            case "String::isWhitespace"_h: return booleanToValue(Unicode::IsWhitespace(args[0].toString()));
+
+            case "JUSTC.parse"_h: return functionJUSTC2(args[0].toString(), false, startPos);
+            case "JUSTC.execute"_h: return functionJUSTC2(args[0].toString(), true, startPos);
+            case "JSON.parse"_h: return functionJSON(args);
+
+            case "JavaScript"_h:
+            case "JavaScript.execute"_h: {
+                if (allowJavaScript) {
+                    #ifdef __EMSCRIPTEN__
+
+                        Value result = runJavaScript(args[0].toString(), Utility::position(startPos, input), true);
+                        addLog("JAVASCRIPT", Utility::value2string(result), startPos);
+                        result.name = "JavaScript(...)";
+                        return result;
+
+                    #elif !defined(_MSC_VER)
+
+                        std::pair<std::string, bool> jsresult = JavaScript::Eval(args[0].toString());
+                        if (jsresult.second) {
+                            throw std::runtime_error("JavaScript error at " + Utility::position(startPos, input) + ":\n" + jsresult.first);
+                        } else {
+                            addLog("JAVASCRIPT", jsresult.first, startPos);
+                        }
+                        Value result = stringToValue(jsresult.first);
+                        result.name = "JavaScript(...)";
+                        return result;
+
+                    #else
+
+                        throw std::runtime_error("Cannot run JavaScript due to OS limitations. Attempt to execute JavaScript code");
+
+                    #endif
+                } else {
+                    throw std::runtime_error("JavaScript disallowed - Cannot run JavaScript \"" + args[0].toString() + "\"");
+                }
+            }
+
+            case "Luau"_h:
+            case "Luau.execute"_h: {
+                #ifndef JUSTC_NOLUAU
+                    if (allowLuau) {
+                        std::pair<std::string, int> luauresult = RunLuau::runScriptWithResult(args[0].toString());
+                        Value result;
+
+                        switch (luauresult.second) {
+                            case 1: // number
+                                result = Value::createNumber(parseNumber(luauresult.first));
+                                result.type = DataType::NUMBER;
+                                break;
+                            case 2: // boolean
+                                result = Value::createBoolean(luauresult.first == "true");
+                                result.type = DataType::BOOLEAN;
+                                break;
+                            case 3: // null
+                                result = Value::createNull();
+                                result.type = DataType::NULL_TYPE;
+                                break;
+                            case 4: case 5: // object/array
+                                result = isolated(luauresult.first, false, startPos, nullptr, "Luau Table output to JUSTC converter");
+                                result.type = luauresult.second == 4 ? DataType::JSON_OBJECT : DataType::JSON_ARRAY;
+                                break;
+                            default: // string/function/thread/userdata
+                                result = stringToValue(luauresult.first);
+                                result.type = DataType::STRING;
+                                break;
+                        }
+
+                        addLog("LUAU", Utility::value2string(result), startPos);
+                        result.name = "Luau(...)";
+                        return result;
+                    } else {
+                        throw std::runtime_error("Luau disallowed - Cannot run Luau \"" + args[0].toString() + "\"");
+                    }
+                #else
+                    throw std::runtime_error("To run Luau, use the standard JUSTC build. The current build excludes Luau.");
+                #endif
+            }
+
+            case "JUSTO"_h:
+            case "JUSTO.parse"_h: return functionJUSTO(args);
+            case "JUSTO.stringify"_h: return toJUSTO(args);
+
+            case "JUSTC.stringify"_h: {
+                Value result = stringToValue(Utility::stringifyValue(args[0]));
+                result.type = DataType::STRING;
+                return result;
+            }
+
+            case "Luau.compile"_h: {
+                #ifndef JUSTC_NOLUAU
+                    if (allowLuau) {
+                        std::string error;
+                        return booleanToValue(RunLuau::compileScript(args[0].toString(), error));
+                    } else {
+                        return booleanToValue(false);
+                    }
+                #else
+                    throw std::runtime_error("To run Luau, use the standard JUSTC build. The current build excludes Luau.");
+                #endif
+            }
+
+            case "Array::join"_h: {
+                std::stringstream ss;
+                std::string sep = ",";
+                if (args.size() > 1) sep = args[1].toString();
+                bool first = true;
+                for (Value val : args[0].array_elements) {
+                    if (!first) ss << sep;
+                    ss << val.toString();
+                    first = false;
+                }
+                return stringToValue(ss.str());
+            }
+            case "Array::includes"_h: {
+                if (args.size() < 2) return booleanToValue(false);
+                bool includes = false;
+                for (Value val : args[0].array_elements) {
+                    includes = Utility::compareValues(val, args[1]);
+                    if (includes) break;
+                }
+                return booleanToValue(includes);
+            }
+            case "Array::indexOf"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected value");
+                for (size_t i = 0; i < args[0].array_elements.size(); i++) {
+                    if (Utility::compareValues(args[0].array_elements[i], args[1])) return Value::createNumber(static_cast<double>(i));
+                }
+                throw std::runtime_error("Value not found in array");
+            }
+            case "Array::lastIndexOf"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected value");
+                for (size_t i = args[0].array_elements.size() - 1; i >= 0; i--) {
+                    if (Utility::compareValues(args[0].array_elements[i], args[1])) return Value::createNumber(static_cast<double>(i));
+                }
+                throw std::runtime_error("Value not found in array");
+            }
+            case "Array::reverse"_h: {
+                std::vector<Value> arr = args[0].array_elements;
+                std::reverse(arr.begin(), arr.end());
+
+                Value result = Value::createJsonArray(arr);
+                result.name = "Array";
+                return result;
+            }
+            case "Array::forEach"_h: {
+                if (args.size() < 2 || args[1].type != DataType::FUNCTION) throw std::runtime_error("Expected function");
+                Value lastResult = Value::createNull();
+                lastResult.type = DataType::NULL_TYPE;
+
+                for (size_t i = 0; i < args[0].array_elements.size(); i++) {
+                    lastResult = callFunction(args[1], {
+                        args[0].array_elements[i], 
+                        Value::createNumber(static_cast<double>(i)),
+                        args[0]
+                    }, startPos, doExecute);
+                }
+
+                return lastResult;
+            }
+            case "Array::filter"_h: {
+                if (args.size() < 2 || args[1].type != DataType::FUNCTION) throw std::runtime_error("Expected function");
+                std::vector<Value> arr;
+                
+                for (size_t i = 0; i < args[0].array_elements.size(); i++) {
+                    if (callFunction(args[1], {
+                        args[0].array_elements[i], 
+                        Value::createNumber(static_cast<double>(i)),
+                        args[0]
+                    }, startPos, doExecute).toBoolean()) arr.push_back(args[0].array_elements[i]);
+                }
+
+                Value result = Value::createJsonArray(arr);
+                result.name = "Array";
+                return result;
+            }
+            case "Array::push"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected value");
+                if (args[0].type != DataType::JSON_ARRAY) throw std::runtime_error("Expected array");
+
+                if (args[0].isVariable) {
+                    auto& arr = variables[args[0].variable].array_elements;
+                    arr.reserve(arr.size() + args.size() - 1);
+                    for (size_t i = 1; i < args.size(); i++) {
+                        arr.push_back(args[i]);
+                    }
+                    return variables[args[0].variable];
+                } else {
+                    std::vector<Value> arr;
+                    arr.reserve(args[0].array_elements.size() + args.size() - 1);
+                    arr.insert(
+                        arr.end(),
+                        std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).begin()),
+                        std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).end())
+                    );
+                    for (size_t i = 1; i < args.size(); i++) {
+                        arr.push_back(args[i]);
+                    }
+                    Value result = Value::createJsonArray(std::move(arr));
+                    result.name = "Array";
+                    return result;
+                }
+            }
+            case "Array::unshift"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected value");
+                if (args[0].type != DataType::JSON_ARRAY) throw std::runtime_error("Expected array");
+
+                if (args[0].isVariable) {
+                    auto& arr = variables[args[0].variable].array_elements;
+                    arr.reserve(arr.size() + args.size() - 1);
+                    arr.insert(arr.begin(), args.begin() + 1, args.end());
+                    return variables[args[0].variable];
+                } else {
+                    std::vector<Value> arr;
+                    arr.reserve(args[0].array_elements.size() + args.size() - 1);
+                    arr.insert(arr.end(), args.begin() + 1, args.end());
+                    arr.insert(
+                        arr.end(),
+                        std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).begin()),
+                        std::make_move_iterator(const_cast<std::vector<Value>&>(args[0].array_elements).end())
+                    );
+                    Value result = Value::createJsonArray(std::move(arr));
+                    result.name = "Array";
+                    return result;
+                }
+            }
+
+            case "Element::render"_h: return Value::createString(renderJSX(args[0]));
+
+            case "Set"_h: {
+                Value result;
+                result.type = DataType::SET;
+                std::unordered_set<Value> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.insert(val.toPrimitive());
+                }
+                result.setComplexData(arr);
+                result.name = "Set";
+                return result;
+            }
+
+            case "Map"_h: {
+                Value result;
+                result.type = DataType::MAP;
+                std::unordered_map<Value, Value> map;
+                result.setComplexData(map);
+                result.name = "Map";
+                return result;
+            }
+
+            case "Int8Array"_h: {
+                Value result;
+                result.type = DataType::INT8_ARRAY;
+                std::vector<int8_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<int8_t>());
+                }
+                result.setComplexData(arr);
+                result.name = "Int8 Array";
+                return result;
+            }
+            case "Int16Array"_h: {
+                Value result;
+                result.type = DataType::INT16_ARRAY;
+                std::vector<int16_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<int16_t>());
+                }
+                result.setComplexData(arr);
+                result.name = "Int16 Array";
+                return result;
+            }
+            case "Int32Array"_h: {
+                Value result;
+                result.type = DataType::INT32_ARRAY;
+                std::vector<int32_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<int32_t>());
+                }
+                result.setComplexData(arr);
+                result.name = "Int32 Array";
+                return result;
+            }
+            case "Int64Array"_h: {
+                Value result;
+                result.type = DataType::INT64_ARRAY;
+                std::vector<int64_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<int64_t>());
+                }
+                result.setComplexData(arr);
+                result.name = "Int64 Array";
+                return result;
+            }
+            case "UInt8Array"_h:
+            case "CUInt8Array"_h: {
+                Value result;
+                result.type = hashed == "UInt8Array"_h ? DataType::UINT8_ARRAY : DataType::CUINT8_ARRAY;
+                std::vector<uint8_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<uint8_t>());
+                }
+                result.setComplexData(arr);
+                result.name = hashed == "UInt8Array"_h ? "UInt8 Array" : "UInt8 clamped Array";
+                return result;
+            }
+            case "UInt16Array"_h:
+            case "CUInt16Array"_h: {
+                Value result;
+                result.type = hashed == "UInt16Array"_h ? DataType::UINT16_ARRAY : DataType::CUINT16_ARRAY;
+                std::vector<uint16_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<uint16_t>());
+                }
+                result.setComplexData(arr);
+                result.name = hashed == "UInt16Array"_h ? "UInt16 Array" : "UInt16 clamped Array";
+                return result;
+            }
+            case "UInt32Array"_h:
+            case "CUInt32Array"_h: {
+                Value result;
+                result.type = hashed == "UInt32Array"_h ? DataType::UINT32_ARRAY : DataType::CUINT32_ARRAY;
+                std::vector<uint32_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<uint32_t>());
+                }
+                result.setComplexData(arr);
+                result.name = hashed == "UInt32Array"_h ? "UInt32 Array" : "UInt32 clamped Array";
+                return result;
+            }
+            case "UInt64Array"_h:
+            case "CUInt64Array"_h: {
+                Value result;
+                result.type = hashed == "UInt64Array"_h ? DataType::UINT64_ARRAY : DataType::CUINT64_ARRAY;
+                std::vector<uint64_t> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<uint64_t>());
+                }
+                result.setComplexData(arr);
+                result.name = hashed == "UInt64Array"_h ? "UInt64 Array" : "UInt64 clamped Array";
+                return result;
+            }
+            case "Float32Array"_h: {
+                Value result;
+                result.type = DataType::FLOAT32_ARRAY;
+                std::vector<float> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<float>());
+                }
+                result.setComplexData(arr);
+                result.name = "Float32 Array";
+                return result;
+            }
+            case "Float64Array"_h: {
+                Value result;
+                result.type = DataType::FLOAT64_ARRAY;
+                std::vector<double> arr;
+                arr.reserve(args.size());
+                for (Value val : args) {
+                    arr.push_back(val.getNumericValue<double>());
+                }
+                result.setComplexData(arr);
+                result.name = "Float64 Array";
+                return result;
+            }
+
+            case "hash"_h: {
+                std::hash<Value> hasher;
+                uint64_t hash = static_cast<uint64_t>(hasher(args[0]));
+                return Value::createNumberWithType(hash, NumericType::UINT64);
+            }
+
+            case "system.env"_h: {
+                const std::pair<bool, std::string> getEnv = Utility::env(args[0].toString());
+                if (!getEnv.first) return Value::createNull();
+                return Value::createString(getEnv.second);
+            }
+
+            case "Int8Array::compress"_h: {
+                if (args[0].type != DataType::INT8_ARRAY) throw std::runtime_error("Expected Int8 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT8_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int8_t> arr = args[0].getComplexData<std::vector<int8_t>>();
+                std::vector<int8_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressI8(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressI8(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressI8(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressI8(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressI8(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressI8(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressI8(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressI8(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = "Int8 Array";
+                return result;
+            }
+            case "Int16Array::compress"_h: {
+                if (args[0].type != DataType::INT16_ARRAY) throw std::runtime_error("Expected Int16 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT16_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int16_t> arr = args[0].getComplexData<std::vector<int16_t>>();
+                std::vector<int16_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressI16(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressI16(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressI16(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressI16(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressI16(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressI16(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressI16(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressI16(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = "Int16 Array";
+                return result;
+            }
+            case "Int32Array::compress"_h: {
+                if (args[0].type != DataType::INT32_ARRAY) throw std::runtime_error("Expected Int32 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT32_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int32_t> arr = args[0].getComplexData<std::vector<int32_t>>();
+                std::vector<int32_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressI32(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressI32(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressI32(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressI32(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressI32(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressI32(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressI32(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressI32(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = "Int32 Array";
+                return result;
+            }
+            case "Int64Array::compress"_h: {
+                if (args[0].type != DataType::INT64_ARRAY) throw std::runtime_error("Expected Int64 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT64_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int64_t> arr = args[0].getComplexData<std::vector<int64_t>>();
+                std::vector<int64_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressI64(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressI64(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressI64(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressI64(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressI64(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressI64(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressI64(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressI64(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = "Int64 Array";
+                return result;
+            }
+            case "UInt8Array::compress"_h:
+            case "CUInt8Array::compress"_h: {
+                DataType t = hashed == "UInt8Array::compress"_h ? DataType::UINT8_ARRAY : DataType::CUINT8_ARRAY;
+                std::string n = "UInt8 " + std::string(t == DataType::CUINT8_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint8_t> arr = args[0].getComplexData<std::vector<uint8_t>>();
+                std::vector<uint8_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressU8(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressU8(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressU8(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressU8(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressU8(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressU8(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressU8(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressU8(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = n;
+                return result;
+            }
+            case "UInt16Array::compress"_h:
+            case "CUInt16Array::compress"_h: {
+                DataType t = hashed == "UInt16Array::compress"_h ? DataType::UINT16_ARRAY : DataType::CUINT16_ARRAY;
+                std::string n = "UInt16 " + std::string(t == DataType::CUINT16_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint16_t> arr = args[0].getComplexData<std::vector<uint16_t>>();
+                std::vector<uint16_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressU16(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressU16(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressU16(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressU16(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressU16(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressU16(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressU16(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressU16(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = n;
+                return result;
+            }
+            case "UInt32Array::compress"_h:
+            case "CUInt32Array::compress"_h: {
+                DataType t = hashed == "UInt32Array::compress"_h ? DataType::UINT32_ARRAY : DataType::CUINT32_ARRAY;
+                std::string n = "UInt32 " + std::string(t == DataType::CUINT32_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint32_t> arr = args[0].getComplexData<std::vector<uint32_t>>();
+                std::vector<uint32_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressU32(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressU32(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressU32(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressU32(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressU32(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressU32(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressU32(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressU32(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = n;
+                return result;
+            }
+            case "UInt64Array::compress"_h:
+            case "CUInt64Array::compress"_h: {
+                DataType t = hashed == "UInt64Array::compress"_h ? DataType::UINT64_ARRAY : DataType::CUINT64_ARRAY;
+                std::string n = "UInt64 " + std::string(t == DataType::CUINT64_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint64_t> arr = args[0].getComplexData<std::vector<uint64_t>>();
+                std::vector<uint64_t> compressed;
+
+                int lvl = 6;
+                if (args.size() > 2) lvl = static_cast<int>(args[2].toNumber());
+
+                if (alg == "zlib") compressed = ZLIB::CompressU64(arr, lvl);
+                else if (alg == "gzip") compressed = GZIP::CompressU64(arr, lvl);
+                else if (alg == "bzip2") compressed = BZIP2::CompressU64(arr, lvl);
+                else if (alg == "lzma") compressed = LZMA::CompressU64(arr, lvl);
+                else if (alg == "zstd") compressed = ZSTD::CompressU64(arr, lvl);
+                else if (alg == "lz4") compressed = LZ4::CompressU64(arr, lvl);
+                else if (alg == "snappy") compressed = SNAPPY::CompressU64(arr, lvl);
+                else if (alg == "deflate") compressed = DEFLATE::CompressU64(arr, lvl);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(compressed);
+                result.name = n;
+                return result;
+            }
+            case "Int8Array::decompress"_h: {
+                if (args[0].type != DataType::INT8_ARRAY) throw std::runtime_error("Expected Int8 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT8_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int8_t> arr = args[0].getComplexData<std::vector<int8_t>>();
+                std::vector<int8_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressI8(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressI8(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressI8(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressI8(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressI8(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressI8(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressI8(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressI8(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = "Int8 Array";
+                return result;
+            }
+            case "Int16Array::decompress"_h: {
+                if (args[0].type != DataType::INT16_ARRAY) throw std::runtime_error("Expected Int16 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT16_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int16_t> arr = args[0].getComplexData<std::vector<int16_t>>();
+                std::vector<int16_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressI16(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressI16(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressI16(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressI16(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressI16(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressI16(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressI16(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressI16(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = "Int16 Array";
+                return result;
+            }
+            case "Int32Array::decompress"_h: {
+                if (args[0].type != DataType::INT32_ARRAY) throw std::runtime_error("Expected Int32 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT32_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int32_t> arr = args[0].getComplexData<std::vector<int32_t>>();
+                std::vector<int32_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressI32(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressI32(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressI32(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressI32(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressI32(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressI32(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressI32(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressI32(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = "Int32 Array";
+                return result;
+            }
+            case "Int64Array::decompress"_h: {
+                if (args[0].type != DataType::INT64_ARRAY) throw std::runtime_error("Expected Int64 Array");
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = DataType::INT64_ARRAY;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<int64_t> arr = args[0].getComplexData<std::vector<int64_t>>();
+                std::vector<int64_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressI64(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressI64(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressI64(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressI64(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressI64(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressI64(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressI64(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressI64(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = "Int64 Array";
+                return result;
+            }
+            case "UInt8Array::decompress"_h:
+            case "CUInt8Array::decompress"_h: {
+                DataType t = hashed == "UInt8Array::decompress"_h ? DataType::UINT8_ARRAY : DataType::CUINT8_ARRAY;
+                std::string n = "UInt8 " + std::string(t == DataType::CUINT8_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint8_t> arr = args[0].getComplexData<std::vector<uint8_t>>();
+                std::vector<uint8_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressU8(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressU8(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressU8(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressU8(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressU8(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressU8(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressU8(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressU8(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = n;
+                return result;
+            }
+            case "UInt16Array::decompress"_h:
+            case "CUInt16Array::decompress"_h: {
+                DataType t = hashed == "UInt16Array::decompress"_h ? DataType::UINT16_ARRAY : DataType::CUINT16_ARRAY;
+                std::string n = "UInt16 " + std::string(t == DataType::CUINT16_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint16_t> arr = args[0].getComplexData<std::vector<uint16_t>>();
+                std::vector<uint16_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressU16(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressU16(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressU16(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressU16(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressU16(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressU16(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressU16(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressU16(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = n;
+                return result;
+            }
+            case "UInt32Array::decompress"_h:
+            case "CUInt32Array::decompress"_h: {
+                DataType t = hashed == "UInt32Array::decompress"_h ? DataType::UINT32_ARRAY : DataType::CUINT32_ARRAY;
+                std::string n = "UInt32 " + std::string(t == DataType::CUINT32_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint32_t> arr = args[0].getComplexData<std::vector<uint32_t>>();
+                std::vector<uint32_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressU32(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressU32(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressU32(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressU32(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressU32(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressU32(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressU32(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressU32(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = n;
+                return result;
+            }
+            case "UInt64Array::decompress"_h:
+            case "CUInt64Array::decompress"_h: {
+                DataType t = hashed == "UInt64Array::decompress"_h ? DataType::UINT64_ARRAY : DataType::CUINT64_ARRAY;
+                std::string n = "UInt64 " + std::string(t == DataType::CUINT64_ARRAY ? "clamped " : "") + "Array";
+
+                if (args[0].type != t) throw std::runtime_error("Expected " + n);
+                if (args.size() < 2) throw std::runtime_error("Expected algorithm");
+                Value result;
+                result.type = t;
+                std::string alg = Unicode::Lower(args[1].toString());
+                const std::vector<uint64_t> arr = args[0].getComplexData<std::vector<uint64_t>>();
+                std::vector<uint64_t> decompressed;
+
+                if (alg == "zlib") decompressed = ZLIB::DecompressU64(arr);
+                else if (alg == "gzip") decompressed = GZIP::DecompressU64(arr);
+                else if (alg == "bzip2") decompressed = BZIP2::DecompressU64(arr);
+                else if (alg == "lzma") decompressed = LZMA::DecompressU64(arr);
+                else if (alg == "zstd") decompressed = ZSTD::DecompressU64(arr);
+                else if (alg == "lz4") decompressed = LZ4::DecompressU64(arr);
+                else if (alg == "snappy") decompressed = SNAPPY::DecompressU64(arr);
+                else if (alg == "deflate") decompressed = DEFLATE::DecompressU64(arr);
+                else throw std::runtime_error("Unknown algorithm \"" + args[1].toString() + "\"");
+
+                result.setComplexData(decompressed);
+                result.name = n;
+                return result;
+            }
+
+            case "Map::set"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected key");
+                if (args.size() < 3) throw std::runtime_error("Expected value");
+                if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
+
+                if (args[0].isVariable) {
+                    std::unordered_map<Value, Value> map;
+                    if (args[0].complex_value) {
+                        try {
+                            map = args[0].getComplexData<std::unordered_map<Value, Value>>();
+                        } catch (...) {
+                            map = std::unordered_map<Value, Value>();
+                        }
+                    }
+                    map[args[1].toPrimitive()] = args[2];
+                    variables[args[0].variable].setComplexData(map);
+                    return variables[args[0].variable];
+                } else {
+                    std::unordered_map<Value, Value> map;
+                    if (args[0].complex_value) {
+                        try {
+                            map = args[0].getComplexData<std::unordered_map<Value, Value>>();
+                        } catch (...) {
+                            map = std::unordered_map<Value, Value>();
+                        }
+                    }
+                    map[args[1].toPrimitive()] = args[2];
+                    Value result = args[0];
+                    result.setComplexData(map);
+                    return result;
+                }
+            }
+            case "Map::get"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected key");
+                if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
+
+                std::unordered_map<Value, Value> map;
+                if (args[0].isVariable) {
+                    map = variables[args[0].variable].getComplexData<std::unordered_map<Value, Value>>();
+                } else {
+                    map = args[0].getComplexData<std::unordered_map<Value, Value>>();
+                }
+                
+                auto it = map.find(args[1].toPrimitive());
+                if (it != map.end()) {
+                    return it->second;
+                }
+                return Value::createNull();
+            }
+            case "Map::has"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected key");
+                if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
+
+                std::unordered_map<Value, Value> map;
+                if (args[0].isVariable) {
+                    map = variables[args[0].variable].getComplexData<std::unordered_map<Value, Value>>();
+                } else {
+                    map = args[0].getComplexData<std::unordered_map<Value, Value>>();
+                }
+
+                auto it = map.find(args[1].toPrimitive());
+                if (it != map.end()) {
+                    return Value::createBoolean(true);
+                }
+                return Value::createBoolean(false);
+            }
+            case "Map::delete"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected key");
+                if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
+
+                if (args[0].isVariable) {
+                    std::unordered_map<Value, Value> map = variables[args[0].variable].getComplexData<std::unordered_map<Value, Value>>();
+                    map.erase(args[1].toPrimitive());
+                    variables[args[0].variable].setComplexData(map);
+                    return variables[args[0].variable];
+                } else {
+                    std::unordered_map<Value, Value> map = args[0].getComplexData<std::unordered_map<Value, Value>>();
+                    map.erase(args[1].toPrimitive());
+                    Value result = args[0];
+                    result.setComplexData(map);
+                    return result;
+                }
+            }
+            case "Map::clear"_h: {
+                if (args[0].type != DataType::MAP) throw std::runtime_error("Expected map");
+
+                std::unordered_map<Value, Value> map;
+                if (args[0].isVariable) {
+                    variables[args[0].variable].setComplexData(map);
+                    return variables[args[0].variable];
+                } else {
+                    Value result = args[0];
+                    result.setComplexData(map);
+                    result.name = "Map";
+                    return result;
+                }
+            }
+
+            case "Set::add"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected value");
+                if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
+
+                if (args[0].isVariable) {
+                    std::unordered_set<Value> set;
+                    if (args[0].complex_value) {
+                        try {
+                            set = args[0].getComplexData<std::unordered_set<Value>>();
+                        } catch (...) {
+                            set = std::unordered_set<Value>();
+                        }
+                    }
+                    set.insert(args[1].toPrimitive());
+                    variables[args[0].variable].setComplexData(set);
+                    return variables[args[0].variable];
+                } else {
+                    std::unordered_set<Value> set;
+                    if (args[0].complex_value) {
+                        try {
+                            set = args[0].getComplexData<std::unordered_set<Value>>();
+                        } catch (...) {
+                            set = std::unordered_set<Value>();
+                        }
+                    }
+                    set.insert(args[1].toPrimitive());
+                    Value result = args[0];
+                    result.setComplexData(set);
+                    return result;
+                }
+            }
+            case "Set::has"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected value");
+                if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
+
+                std::unordered_set<Value> set;
+                if (args[0].isVariable) {
+                    set = variables[args[0].variable].getComplexData<std::unordered_set<Value>>();
+                } else {
+                    set = args[0].getComplexData<std::unordered_set<Value>>();
+                }
+
+                auto it = set.find(args[1].toPrimitive());
+                if (it != set.end()) {
+                    return Value::createBoolean(true);
+                }
+                return Value::createBoolean(false);
+            }
+            case "Set::delete"_h: {
+                if (args.size() < 2) throw std::runtime_error("Expected value");
+                if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
+
+                if (args[0].isVariable) {
+                    std::unordered_set<Value> set = variables[args[0].variable].getComplexData<std::unordered_set<Value>>();
+                    set.erase(args[1].toPrimitive());
+                    variables[args[0].variable].setComplexData(set);
+                    return variables[args[0].variable];
+                } else {
+                    std::unordered_set<Value> set = args[0].getComplexData<std::unordered_set<Value>>();
+                    set.erase(args[1].toPrimitive());
+                    Value result = args[0];
+                    result.setComplexData(set);
+                    return result;
+                }
+            }
+            case "Set::clear"_h: {
+                if (args[0].type != DataType::SET) throw std::runtime_error("Expected set");
+
+                std::unordered_set<Value> set;
+                if (args[0].isVariable) {
+                    variables[args[0].variable].setComplexData(set);
+                    return variables[args[0].variable];
+                } else {
+                    Value result = args[0];
+                    result.setComplexData(set);
+                    result.name = "Set";
+                    return result;
+                }
+            }
+
+            case "Object::size"_h: {
+                uint64_t size = static_cast<uint64_t>(args[0].properties.size());
+                return Value::createNumberWithType(size, NumericType::UINT64);
+            }
+            case "Array::size"_h: {
+                uint64_t size = static_cast<uint64_t>(args[0].array_elements.size());
+                return Value::createNumberWithType(size, NumericType::UINT64);
+            }
+            case "Map::size"_h:
+            case "Set::size"_h: {
+                if (args[0].complex_value) {
+                    if (hashed == "Map::size"_h) {
+                        auto map = args[0].getComplexData<std::unordered_map<Value, Value>>();
+                        return Value::createNumberWithType(static_cast<uint64_t>(map.size()), NumericType::UINT64);
+                    } else {
+                        auto set = args[0].getComplexData<std::unordered_set<Value>>();
+                        return Value::createNumberWithType(static_cast<uint64_t>(set.size()), NumericType::UINT64);
+                    }
+                }
+                return Value::createNumberWithType(static_cast<uint64_t>(0), NumericType::UINT64);
+            }
+            case "Int8Array::size"_h:
+            case "Int16Array::size"_h:
+            case "Int32Array::size"_h:
+            case "Int64Array::size"_h:
+            case "UInt8Array::size"_h:
+            case "UInt16Array::size"_h:
+            case "UInt32Array::size"_h:
+            case "UInt64Array::size"_h:
+            case "CUInt8Array::size"_h:
+            case "CUInt16Array::size"_h:
+            case "CUInt32Array::size"_h:
+            case "CUInt64Array::size"_h:
+            case "Float32Array::size"_h:
+            case "Float64Array::size"_h: {
+                if (args[0].complex_value) {
+                    try {
+                        if (args[0].type == DataType::INT8_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<int8_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::INT16_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<int16_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::INT32_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<int32_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::INT64_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<int64_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::UINT8_ARRAY || args[0].type == DataType::CUINT8_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<uint8_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::UINT16_ARRAY || args[0].type == DataType::CUINT16_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<uint16_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::UINT32_ARRAY || args[0].type == DataType::CUINT32_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<uint32_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::UINT64_ARRAY || args[0].type == DataType::CUINT64_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<uint64_t>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::FLOAT32_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<float>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        } else if (args[0].type == DataType::FLOAT64_ARRAY) {
+                            auto vec = args[0].getComplexData<std::vector<double>>();
+                            return Value::createNumberWithType(static_cast<uint64_t>(vec.size()), NumericType::UINT64);
+                        }
+                    } catch (...) {
+                        return Value::createNumberWithType(static_cast<uint64_t>(0), NumericType::UINT64);
+                    }
+                }
+                return Value::createNumberWithType(static_cast<uint64_t>(0), NumericType::UINT64);
+            }
+
+            case "task.sleep"_h: {
+                std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(args[0].toNumber())));
+                return Value::createNull();
+            }
+
+            case "Promise"_h: {
+                bool doExec = doExecute;
+                Value result;
+                result.type = DataType::PROMISE;
+                result.setComplexData<Promise>(newPromise([this, args, startPos, doExec](Defer d) {
+                    std::thread([this, args, d, startPos, doExec]() {
+                        Value output = Value::createNull();
+                        bool rejected = false;
+                        bool done = false;
+                        
+                        try {
+                            if (args[0].type == DataType::FUNCTION) {
+                                Value resolve = createFunction(
+                                    [&done, &output](const std::vector<Value>& args) -> Value {
+                                        if (!done) {
+                                            done = true;
+                                            if (!args.empty()) {
+                                                output = args[0];
+                                            }
+                                        }
+                                        return Value::createNull();
+                                    },
+                                    "resolve"
+                                );
+                                
+                                Value reject = createFunction(
+                                    [&done, &output, &rejected](const std::vector<Value>& args) -> Value {
+                                        if (!done) {
+                                            done = true;
+                                            rejected = true;
+                                            if (!args.empty()) {
+                                                output = args[0];
+                                            }
+                                        }
+                                        return Value::createNull();
+                                    },
+                                    "reject"
+                                );
+                                
+                                Value funcResult = callFunction(args[0], {resolve, reject}, startPos, doExec);
+                                
+                                if (funcResult.type != DataType::NULL_TYPE && !done) {
+                                    done = true;
+                                    output = funcResult;
+                                }
+                            } else {
+                                output = args[0];
+                                done = true;
+                            }
+                            
+                            if (rejected) {
+                                d.reject(output);
+                            } else if (done) {
+                                d.resolve(output);
+                            }
+                        } catch (const std::exception& e) {
+                            d.reject(Value::createString(std::string(e.what())));
+                        } catch (...) {
+                            d.reject(Value::createString(std::string("Unknown error in Promise")));
+                        }
+                    }).detach();
+                }));
+                result.name = "Promise";
+                promises.push_back(result);
+                return result;
+            }
+
+            case "task.race"_h: {
+                std::vector<Promise> proms;
+                if (args.size() == 1 && args[0].type == DataType::JSON_ARRAY) {
+                    proms.reserve(args[0].array_elements.size());
+                    for (const Value& prom : args[0].array_elements) {
+                        if (prom.type != DataType::PROMISE) throw std::runtime_error("Expected promise, got " + dataTypeToString(prom.type) + ".");
+                        proms.push_back(prom.getComplexData<Promise>());
+                    }
+                } else {
+                    proms.reserve(args.size());
+                    for (const Value& prom : args) {
+                        if (prom.type != DataType::PROMISE) throw std::runtime_error("Expected promise, got " + dataTypeToString(prom.type) + ".");
+                        proms.push_back(prom.getComplexData<Promise>());
+                    }
+                }
+                int32_t resultID = -1;
+                race(proms).then([&resultID](int result) {
+                    resultID = static_cast<int32_t>(result);
+                });
+                return Value::createNumberWithType(resultID, NumericType::INT32);
+            }
+
+            case "free"_h: {
+                for (const Value& ptr : args) {
+                    freePointer(ptr);
+                }
+                return Value::createNull();
+            }
+
+            case "Error"_h: {
+                Value result = stringToValue(args[0].toString());
+                result.type = DataType::ERROR;
+                return result;
+            }
+
+            case "String::hash"_h: return Value::createNumberWithType(hash_fnv1a(args[0].toString()), NumericType::UINT32);
+
+            default: break;
         }
     } catch (const std::exception& e) {
         throw std::runtime_error(std::string(e.what()) + " at " + Utility::position(startPos, input) + ".");
     }
 
-    throw std::runtime_error("\"" + funcName + "\" is not a function.");
+    throw std::runtime_error("\"" + funcName + "\" is not a function. Call attempt at " + Utility::position(startPos, input) + ".");
 }
 
 Value Parser::doubleDot(const Value& left, const Value& right) {
@@ -5816,7 +5750,7 @@ Value Parser::evaluateExpression(const Value& left, const std::string& op, const
             switch (left.type) {
                 case DataType::STRING:
                 case DataType::LINK:
-                    result = executeFunction("String::Slice", {
+                    result = executeFunction("String::Slice"_h, {
                         stringToValue(left.toString()), 
                         numberToValue(static_cast<double>(index)), 
                         numberToValue(static_cast<double>(index + 1))
@@ -6561,6 +6495,67 @@ Value Parser::functionSTRING(const std::vector<Value>& args) {
     if (args.empty()) return stringToValue("");
 
     return stringToValue(args[0].toString());
+}
+
+Value Parser::functionSTRINGGRAPHEMEREVERSE(const std::vector<Value>& args) {
+    return stringToValue(Unicode::GraphemeReverse(args[0].toString()));
+}
+Value Parser::functionSTRINGGRAPHEMESLICE(const std::vector<Value>& args) {
+    std::string str = args[0].toString();
+    int64_t start = 0;
+    int64_t end = static_cast<int64_t>(str.length());
+
+    if (args.size() > 1) {
+        start = static_cast<int64_t>(args[1].toNumber());
+        if (args.size() > 2) {
+            end = static_cast<int64_t>(args[2].toNumber());
+        }
+    }
+
+    return stringToValue(Unicode::GraphemeSlice(str, start, end));
+}
+Value Parser::functionSTRINGGRAPHEMELENGTH(const std::vector<Value>& args) {
+    return Value::createNumber(static_cast<double>(Unicode::GraphemeLength(args[0].toString())));
+}
+Value Parser::functionSTRINGCODEPOINTREVERSE(const std::vector<Value>& args) {
+    return stringToValue(Unicode::CodePointReverse(args[0].toString()));
+}
+Value Parser::functionSTRINGCODEPOINTSLICE(const std::vector<Value>& args) {
+    std::string str = args[0].toString();
+    int64_t start = 0;
+    int64_t end = static_cast<int64_t>(str.length());
+
+    if (args.size() > 1) {
+        start = static_cast<int64_t>(args[1].toNumber());
+        if (args.size() > 2) {
+            end = static_cast<int64_t>(args[2].toNumber());
+        }
+    }
+
+    return stringToValue(Unicode::CodePointSlice(str, start, end));
+}
+Value Parser::functionSTRINGCODEPOINTLENGTH(const std::vector<Value>& args) {
+    return Value::createNumber(static_cast<double>(Unicode::CodePointLength(args[0].toString())));
+}
+Value Parser::functionSTRINGBYTEREVERSE(const std::vector<Value>& args) {
+    return stringToValue(Unicode::ByteReverse(args[0].toString()));
+}
+Value Parser::functionSTRINGBYTESLICE(const std::vector<Value>& args) {
+    std::string str = args[0].toString();
+    int64_t start = 0;
+    int64_t end = static_cast<int64_t>(str.length());
+
+    if (args.size() > 1) {
+        start = static_cast<int64_t>(args[1].toNumber());
+        if (args.size() > 2) {
+            end = static_cast<int64_t>(args[2].toNumber());
+        }
+    }
+
+    return stringToValue(Unicode::ByteSlice(str, start, end));
+}
+Value Parser::functionSTRINGBYTELENGTH(const std::vector<Value>& args) {
+    return Value::createNumber(static_cast<double>(Unicode::ByteLength(args[0].toString())));
 }
 
 Value Parser::functionLINK(const std::vector<Value>& args) {
@@ -7407,7 +7402,8 @@ Value Parser::callFunction(const Value& function, const std::vector<Value>& args
     } else if (!doExecute) {
         return onExecDisabled(startPos, function.name);
     } else if (function.native) {
-        return executeFunction(function.name, args, startPos);
+        if (static_cast<bool>(function.numeric_data)) return executeFunction(function.getNumericValue<uint32_t>(), args, startPos);
+        else return executeFunction(function.name, args, startPos);
     }
 
     const auto& funcInfo = function.function_info;
@@ -8060,7 +8056,7 @@ Value Parser::parseObjectPropertyAccess(bool doExecute, bool set) {
             if ((currentValue.type == DataType::STRING || currentValue.type == DataType::LINK) && std::holds_alternative<size_t>(last)) {
                 size_t index = std::get<size_t>(last);
                 currentValue = stringToValue(currentValue.toString());
-                return executeFunction("String::Slice", {
+                return executeFunction("String::Slice"_h, {
                     currentValue, 
                     numberToValue(static_cast<double>(index)), 
                     numberToValue(static_cast<double>(index + 1))
@@ -9300,6 +9296,21 @@ Value Parser::createFunction(std::function<Value(const std::vector<Value>&)> fun
     Value result;
     result.type = DataType::FUNCTION;
     result.name = name.empty() ? FUNCTION_PREFIX + Utility::uint64ToHexString(id) : name;
+    result.string_value = "[native code]";
+    result.object_type = DataType::FUNCTION;
+    result.native = true;
+    result.function_info.paramNames.push_back(FUNCTION_ID_NAME);
+    result.function_info.paramTypes.push_back(DataType::NUMBER);
+    result.function_info.defaultValues.push_back(Value::createNumberWithType(id, NumericType::UINT64));
+    
+    return result;
+}
+Value Parser::createFunction(std::function<Value(const std::vector<Value>&)> func, const uint32_t& hash) {
+    uint64_t id = registerUserFunction(func);
+    
+    Value result = Value::createNumberWithType(hash, NumericType::UINT32);
+    result.type = DataType::FUNCTION;
+    result.name = FUNCTION_PREFIX + Utility::uint64ToHexString(id);
     result.string_value = "[native code]";
     result.object_type = DataType::FUNCTION;
     result.native = true;

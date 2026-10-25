@@ -249,6 +249,11 @@ public:
         ss << "0x" << std::setfill('0') << std::setw(16) << std::hex << num;
         return ss.str();
     }
+    static inline std::string uint32ToHexString(uint32_t num) {
+        std::stringstream ss;
+        ss << "0x" << std::setfill('0') << std::setw(8) << std::hex << num;
+        return ss.str();
+    }
 
     static std::string hashString(const Value& val);
     static std::string hashString(const Value::Property& val);
