@@ -3412,7 +3412,7 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
 Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall, bool custom, size_t customStart) {
     std::string funcName = currentToken().value;
     size_t startPos = currentToken().start;
-    size_t start_ = custom ? customStart : position;
+    size_t start_ = custom ? customStart : optimizedTokens.size();
 
     while (peekToken().type == "." && position + 2 < tokens.size()) {
         advance();
@@ -3426,7 +3426,7 @@ Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall, bool custom
 
     Value funcValue = resolveVariableValue(funcName, false);
     advance();
-    size_t end_ = position;
+    size_t end_ = optimizedTokens.size();
     if (!doFunctionCall) return funcValue;
     
     if (funcValue.type == DataType::FUNCTION) {
@@ -3476,7 +3476,7 @@ Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall, bool custom
 }
 Value Parser::parseSpaceCall(bool doExecute, bool doFunctionCall) {
     std::string spaceName = currentToken().value;
-    size_t start_ = position;
+    size_t start_ = optimizedTokens.size();
     advance();
 
     if (!match("::")) {
@@ -7423,19 +7423,59 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
     std::stringstream body;
     int braceCount = 1;
 
+    const size_t bodyStart = position;
+    size_t bodyEnd = bodyStart;
+    const size_t optimizedBodyStart = optimizedTokens.size();
+
     while (!isEnd() && braceCount > 0) {
-        if (match("{")) braceCount++;
-        else if (match("}")) braceCount--;
+        if (match("{")) {
+            braceCount++;
+        } else if (match("}")) {
+            braceCount--;
+        }
 
         if (braceCount > 0) {
-            funcInfo.tokens.push_back(currentToken());
             body << t2i(currentToken());
+            advance();
+        } else {
+            bodyEnd = position;
+            advance();
+            break;
         }
-        advance();
     }
+    
+    const size_t optimizedBodyEnd = optimizedTokens.size();
 
     if (braceCount != 0) {
         throw std::runtime_error("Unclosed function body at " + Utility::position(currentToken().start, input));
+    }
+
+    funcInfo.tokens.assign(
+        tokens.begin() + bodyStart,
+        tokens.begin() + bodyEnd
+    );
+    if (parsertype == ParserType::OPTIMIZE) {
+        funcInfo.tokens = Parser::optimize(
+            funcInfo.tokens,
+            doExecute,
+            runAsync,
+            input,
+            allowJavaScript,
+            canAllowJS,
+            scriptName,
+            scriptType,
+            allowLuau,
+            canAllowLuau
+        );
+        optimizedTokens.erase(
+            optimizedTokens.begin() + optimizedBodyStart,
+            optimizedTokens.begin() + optimizedBodyEnd
+        );
+        optimizedTokens.insert(
+            optimizedTokens.begin() + optimizedBodyStart,
+            funcInfo.tokens.begin(),
+            funcInfo.tokens.end()
+        );
     }
 
     std::string functionBody = body.str();
