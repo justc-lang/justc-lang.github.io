@@ -33,25 +33,29 @@ SOFTWARE.
 #include <memory>
 #include <codecvt>
 #include <locale>
+#include <cstdint>
 #include "keywords.h"
 
 struct ParserToken {
     std::string type;
     std::string value;
     size_t start;
+    uint32_t uint32;
 
-    ParserToken() : type(""), value(""), start(0) {}
+    ParserToken() : type(""), value(""), start(0), uint32(0) {}
     ParserToken(const std::string& t, const std::string& v, size_t s)
-        : type(t), value(v), start(s) {}
+        : type(t), value(v), start(s), uint32(0) {}
+    ParserToken(const std::string& t, const uint32_t& v, size_t s)
+        : type(t), value(""), start(s), uint32(v) {}
 
     #ifndef JUSTC_NOCEREAL
         template <class Archive>
         void serialize(Archive& archive) {
             archive(type);
-            archive(value);
-            int startInt = static_cast<int>(start);
-            archive(startInt);
-            start = static_cast<size_t>(startInt);
+            bool isUInt32 = type == "call";
+            archive(isUInt32);
+            if (isUInt32) archive(uint32);
+            else archive(value);
         }
     #endif
 };

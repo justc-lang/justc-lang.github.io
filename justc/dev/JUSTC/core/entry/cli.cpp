@@ -256,6 +256,7 @@ Options:
   -h, --help                            Print JUSTC command line options
   --license                             Print JUSTC license
   --no-compression                      Disable compiler output compression
+  --no-optimization                     Disable compiler output optimization
   -p, --print                           Print the result
   --raw-version                         Print JUSTC version in "x.y.z" format
   -s, --silent                          Suppress all logs except errors
@@ -372,6 +373,7 @@ struct CommandLineFlags {
     bool allowLuau = true;
 
     bool noCompression = false;
+    bool optimization = true;
 
     bool hasInp = false;
 
@@ -462,6 +464,9 @@ CommandLineFlags parseArguments(int argc, char* argv[]) {
             ++i;
         } else if (arg == "--no-compression") {
             flags.noCompression = true;
+            ++i;
+        } else if (arg == "--no-optimization") {
+            flags.optimization = false;
             ++i;
         } else if (arg == "--error-messagebox") {
             doErrorWindow = true;
@@ -583,7 +588,7 @@ void handleCompileJustb(const CommandLineFlags& flags) {
     }
 
     std::stringstream ss;
-    if (!JustbCompiler::compile(result, ss, flags.noCompression)) {
+    if (!JustbCompiler::compile(result, ss, flags.noCompression, flags.optimization)) {
         throwError("Failed to compile to JUSTB");
     }
 

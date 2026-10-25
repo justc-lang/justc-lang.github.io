@@ -863,6 +863,10 @@ Parser::Parser(
     endOfScript("."), returnValue(DataType::UNKNOWN), isFunction(isFunction), chartype(chartype), currentScope(0), rootIndex(0),
     parsertype(parsertype), nextStructConstructor(0), nextIndex(0), throwError(false), hasWindow(false)
 {
+    if (parsertype == ParserType::OPTIMIZE) {
+        doExecute = false;
+    }
+
     initializeCPPTypes();
     initializeBuiltIns();
 
@@ -1425,7 +1429,10 @@ ParserToken Parser::peekToken(size_t offset) const {
 
 void Parser::advance() {
     if (position < tokens.size()) {
-        position++;
+        if (parsertype == ParserType::OPTIMIZE) {
+            optimizedTokens.push_back(tokens[position]);
+        }
+        ++position;
     }
 }
 
@@ -1484,6 +1491,7 @@ bool Parser::isInBracketedExpression() {
 
 ParseResult Parser::parse(bool doExecute) {
     ParseResult result;
+    result.doExec = doExecute;
 
     result.variables = std::make_shared<std::unordered_map<std::string, Value>>(variables);
     result.constants = std::make_shared<std::unordered_map<std::string, bool>>(constVars);
@@ -1654,6 +1662,12 @@ ParseResult Parser::parse(bool doExecute) {
                 #else
                     throw std::runtime_error("To run Luau, use the standard JUSTC build. The current build excludes Luau.");
                 #endif
+            } else if (match("call")) {
+                uint32_t hash = currentToken().uint32;
+                size_t startPos = currentToken().start;
+                advance();
+                std::vector<Value> args = parseArguments(doExecute);
+                executeFunction(hash, args, startPos);
             } else if (match("\\")) {
                 advance();
             } else if (isJSONArray) {
@@ -3127,6 +3141,7 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
             varName == "$BACKSLASH" || varName == "$JUST_VERSION"
         ) {
             advance();
+            if (parsertype == ParserType::OPTIMIZE) optimizedTokens.back() = ParserToken{"call", hash_fnv1a(varName.substr(1)), currentToken().start};
             return executeFunction(varName.substr(1), {}, currentToken().start);
         }
 
@@ -3266,6 +3281,11 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
         return result;
     }*/
     else if ((match("JavaScript") || match("JavaScript_i")) && doExecute && allowJavaScript) {
+        if (parsertype == ParserType::OPTIMIZE) {
+            advance();
+            return Value::createNull();
+        }
+        
         bool interpolation = match("JavaScript_i");
         std::string code = interpolation ? parseStringInterpolation(doExecute) : currentToken().value;
 
@@ -3293,6 +3313,10 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
         #endif
     }
     else if (match("JavaScript") || match("JavaScript_i")) {
+        if (parsertype == ParserType::OPTIMIZE) {
+            advance();
+            return Value::createNull();
+        }
         #ifdef __EMSCRIPTEN__
         if (!allowJavaScript) warn_js_disabled_by_justc(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
         else warn_js_disabled(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
@@ -3301,6 +3325,10 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
         return Value::createNull();
     }
     else if ((match("Luau") || match("Luau_i")) && doExecute && allowLuau) {
+        if (parsertype == ParserType::OPTIMIZE) {
+            advance();
+            return Value::createNull();
+        }
         #ifndef JUSTC_NOLUAU
             bool interpolation = match("Luau_i");
             std::pair<std::string, int> luauresult = RunLuau::runScriptWithResult(interpolation ? parseStringInterpolation(doExecute) : currentToken().value);
@@ -3338,6 +3366,10 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
         #endif
     }
     else if (match("Luau") || match("Luau_i")) {
+        if (parsertype == ParserType::OPTIMIZE) {
+            advance();
+            return Value::createNull();
+        }
         #ifdef __EMSCRIPTEN__
         if (!allowLuau) warn_luau_disabled_by_justc(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
         else warn_luau_disabled(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
@@ -3346,6 +3378,10 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
         return Value::createNull();
     }
     else if (match("jsx_element")) {
+        if (parsertype == ParserType::OPTIMIZE) {
+            advance();
+            return Value::createNull();
+        }
         std::string jsxStr = currentToken().value;
         advance();
         return parseJSXElement(jsxStr);
@@ -3362,13 +3398,21 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
         advance();
         return functionJUSTC2(code, doExecute, currentToken().start);
     }
+    else if (match("call")) {
+        uint32_t hash = currentToken().uint32;
+        size_t startPos = currentToken().start;
+        advance();
+        std::vector<Value> args = parseArguments(doExecute);
+        return executeFunction(hash, args, startPos);
+    }
 
     throw std::runtime_error("Invalid or unexpected token \"" + currentToken().value + "\" at " + Utility::position(currentToken().start, input) + ".");
 }
 
-Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall) {
+Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall, bool custom, size_t customStart) {
     std::string funcName = currentToken().value;
     size_t startPos = currentToken().start;
+    size_t start_ = custom ? customStart : position;
 
     while (peekToken().type == "." && position + 2 < tokens.size()) {
         advance();
@@ -3382,6 +3426,7 @@ Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall) {
 
     Value funcValue = resolveVariableValue(funcName, false);
     advance();
+    size_t end_ = position;
     if (!doFunctionCall) return funcValue;
     
     if (funcValue.type == DataType::FUNCTION) {
@@ -3401,6 +3446,7 @@ Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall) {
         }
         advance();
 
+        if (parsertype == ParserType::OPTIMIZE) return Value::createNull();
         return callFunction(funcValue, args, currentToken().start, doExecute);
     } else {
         if (!match("(")) {
@@ -3419,11 +3465,18 @@ Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall) {
         }
         advance();
 
+        if (parsertype == ParserType::OPTIMIZE) {
+            auto next_it = optimizedTokens.erase(optimizedTokens.begin() + start_, optimizedTokens.begin() + end_);
+            optimizedTokens.insert(next_it, ParserToken{"call", hash_fnv1a(funcName), startPos});
+            std::cout << "found built-in function call \"" << funcName << "\" at " << startPos << std::endl; // debug
+            return Value::createNull();
+        }
         return executeFunction(funcName, args, currentToken().start);
     }
 }
 Value Parser::parseSpaceCall(bool doExecute, bool doFunctionCall) {
     std::string spaceName = currentToken().value;
+    size_t start_ = position;
     advance();
 
     if (!match("::")) {
@@ -3432,7 +3485,7 @@ Value Parser::parseSpaceCall(bool doExecute, bool doFunctionCall) {
     advance();
 
     tokens[position].value = spaceName + "::" + currentToken().value;
-    return parseFunctionCall(doExecute, doFunctionCall);
+    return parseFunctionCall(doExecute, doFunctionCall, true, start_);
 }
 
 ASTNode Parser::parseCommand(bool doExecute) {
@@ -3533,7 +3586,9 @@ Value Parser::onExecDisabled(size_t startPos, std::string name) {
     return result;
 }
 
-Value Parser::executeFunction(const builtinFunction& funcName_, const std::vector<Value>& args, size_t startPos) {
+Value Parser::executeFunction(const builtinFunction& funcName_, const std::vector<Value>& args, size_t startPos) {\
+    if (parsertype == ParserType::OPTIMIZE) return Value::createNull();
+
     std::string funcName = "unknown";
     uint32_t hashed;
 
@@ -6977,11 +7032,12 @@ std::string Parser::t2i(ParserToken toIsolated) { // tokenToIsolated
     return out + " ";
 }
 
-Value Parser::parseCondition(bool doExecute, bool wasIsolated) {
+Value Parser::parseCondition(bool doExecute, bool wasIsolated, bool skip_) {
     size_t startPos = currentToken().start;
     int conditionType = 0; // 0 = if; 1 = for; 2 = while; 3 = elseif; 4 = try
     std::string errMsg = "Expected \"if\"/\"for\"/\"while\"/\"try\" keyword at " + Utility::position(startPos, input) + ".";
     bool isIsolated = wasIsolated;
+    bool skip = skip_ || parsertype == ParserType::OPTIMIZE;
 
     if (match("keyword", "isolated")) {
         isIsolated = true;
@@ -7118,15 +7174,19 @@ Value Parser::parseCondition(bool doExecute, bool wasIsolated) {
     switch (conditionType) {
         case 0: case 3: { // if/elseif
             std::string currOp = conditionType == 0 ? "if" : "elseif";
-            bool conditionResult = i2v(isolated("return " + first.str() + " .", doExecute, startPos, &conditionContext, "'" + currOp + "' condition at " + Utility::position(currentToken().start, input))).toBoolean();
+            bool conditionResult = skip ? false : i2v(isolated("return " + first.str() + " .", doExecute, startPos, &conditionContext, "'" + currOp + "' condition at " + Utility::position(currentToken().start, input))).toBoolean();
             exitScope();
 
+            Value result = Value::createNull();
+
             if (conditionResult) {
-                return shared(conditionBody, doExecute, startPos, &conditionBodyContext, "'" + currOp + "' body at " + Utility::position(currentToken().start, input), !isIsolated);
-            } else if (match("keyword", "else")) {
+                result = skip ? Value::createNull() : shared(conditionBody, doExecute, startPos, &conditionBodyContext, "'" + currOp + "' body at " + Utility::position(currentToken().start, input), !isIsolated);
+            }
+            if (match("keyword", "else")) {
                 advance();
                 if (peekToken().type == "keyword" && peekToken().value == "if") {
-                    return parseCondition(doExecute, isIsolated);
+                    Value temp = parseCondition(doExecute, isIsolated, conditionResult);
+                    if (!conditionResult) result = temp;
                 }
 
                 std::unordered_map<std::string, Value> elseContext = conditionBodyContext;
@@ -7154,26 +7214,30 @@ Value Parser::parseCondition(bool doExecute, bool wasIsolated) {
                 }
                 if (braceCount4 != 0) throw std::runtime_error(unclosedBody);
 
-                return shared(elsebody.str(), doExecute, startPos, &elseContext, "'else' body at " + Utility::position(currentToken().start, input), !isIsolated);
+                if (!conditionResult) result = skip ? Value::createNull() : shared(elsebody.str(), doExecute, startPos, &elseContext, "'else' body at " + Utility::position(currentToken().start, input), !isIsolated);
             } else if (match("keyword", "elseif")) {
-                return parseCondition(doExecute, isIsolated);
-            } else return Value::createNull();
+                Value temp = parseCondition(doExecute, isIsolated, conditionResult);
+                if (!conditionResult) result = skip ? Value::createNull() : temp;
+            }
+            return result;
         } case 2: { // while
             std::string conditionStr = "return " + first.str() + " .";
-            bool conditionResult = i2v(isolated(conditionStr, doExecute, startPos, &conditionContext, "'while' condition at " + Utility::position(currentToken().start, input))).toBoolean();
+            bool conditionResult = skip ? false : i2v(isolated(conditionStr, doExecute, startPos, &conditionContext, "'while' condition at " + Utility::position(currentToken().start, input))).toBoolean();
             exitScope();
             Value lastResult = Value::createNull();
             while (conditionResult) {
-                lastResult = shared(conditionBody, doExecute, startPos, &conditionBodyContext, "'while' body at " + Utility::position(currentToken().start, input), !isIsolated);
-                for (const auto& [key, value] : this->variables) {
-                    try {
-                        conditionContext[key] = resolveVariableValue(key, false);
-                    } catch (...) {
-                        conditionContext[key] = value;
+                lastResult = skip ? Value::createNull() : shared(conditionBody, doExecute, startPos, &conditionBodyContext, "'while' body at " + Utility::position(currentToken().start, input), !isIsolated);
+                if (!skip) {
+                    for (const auto& [key, value] : this->variables) {
+                        try {
+                            conditionContext[key] = resolveVariableValue(key, false);
+                        } catch (...) {
+                            conditionContext[key] = value;
+                        }
                     }
                 }
                 enterScope();
-                conditionResult = i2v(isolated(conditionStr, doExecute, startPos, &conditionContext, "'while' condition at " + Utility::position(currentToken().start, input))).toBoolean();
+                conditionResult = skip ? false : i2v(isolated(conditionStr, doExecute, startPos, &conditionContext, "'while' condition at " + Utility::position(currentToken().start, input))).toBoolean();
                 exitScope();
             }
             return lastResult;
@@ -7183,7 +7247,7 @@ Value Parser::parseCondition(bool doExecute, bool wasIsolated) {
             bool failed = false;
             std::string err = "";
             try {
-                result = shared(conditionBody, doExecute, startPos, &conditionBodyContext, "'try' body at " + Utility::position(currentToken().start, input), !isIsolated);
+                result = skip ? Value::createNull() : shared(conditionBody, doExecute, startPos, &conditionBodyContext, "'try' body at " + Utility::position(currentToken().start, input), !isIsolated);
             } catch (const std::runtime_error& e) {
                 failed = true;
                 err = std::string(e.what());
@@ -7194,7 +7258,7 @@ Value Parser::parseCondition(bool doExecute, bool wasIsolated) {
                 failed = true;
                 err = "Unknown error.";
             }
-            if (failed && match("keyword", "catch")) {
+            if (match("keyword", "catch")) {
                 advance();
 
                 std::unordered_map<std::string, Value> catchContext = conditionBodyContext;
@@ -7234,7 +7298,7 @@ Value Parser::parseCondition(bool doExecute, bool wasIsolated) {
                 }
                 if (braceCount4 != 0) throw std::runtime_error(unclosedBody);
 
-                result = shared(catchbody.str(), doExecute, startPos, &catchContext, "'catch' body at " + Utility::position(currentToken().start, input), !isIsolated);
+                if (failed) result = skip ? Value::createNull() : shared(catchbody.str(), doExecute, startPos, &catchContext, "'catch' body at " + Utility::position(currentToken().start, input), !isIsolated);
             }
             if (match("keyword", "finally")) {
                 advance();
@@ -7262,7 +7326,7 @@ Value Parser::parseCondition(bool doExecute, bool wasIsolated) {
                 }
                 if (braceCount4 != 0) throw std::runtime_error(unclosedBody);
 
-                result = shared(finallybody.str(), doExecute, startPos, &finallyContext, "'finally' body at " + Utility::position(currentToken().start, input), !isIsolated);
+                result = skip ? Value::createNull() : shared(finallybody.str(), doExecute, startPos, &finallyContext, "'finally' body at " + Utility::position(currentToken().start, input), !isIsolated);
             }
             return result;
         } default:
@@ -8091,7 +8155,7 @@ Value Parser::parseObjectPropertyAccess(bool doExecute, bool set) {
 
         Value func = accessProperty(currentValue, funcName).first;
 
-        if (func.type == DataType::FUNCTION) { // user funciton
+        if (func.type == DataType::FUNCTION) { // user function
             return callFunction(func, parseArguments(doExecute), currentToken().start, doExecute);
         } else { // built-in function
             return executeFunction(funcName, parseArguments(doExecute), currentToken().start);
@@ -9537,7 +9601,7 @@ ParseResult Parser::parseTokens(const std::vector<ParserToken>& tokens, bool doE
     try {
     #endif
 
-        Parser parser(tokens, doExecute, runAsync, input, allowJavaScript, canAllowJS, scriptName, scriptType, allowLuau, canAllowLuau, false, nullptr, CharType::GRAPHEME);
+        Parser parser(tokens, doExecute, runAsync, input, allowJavaScript, canAllowJS, scriptName, scriptType, allowLuau, canAllowLuau, false, nullptr, CharType::GRAPHEME, ParserType::SCRIPT);
         return parser.parse(doExecute);
 
     #ifndef __EMSCRIPTEN__
@@ -9545,4 +9609,37 @@ ParseResult Parser::parseTokens(const std::vector<ParserToken>& tokens, bool doE
         throw std::runtime_error(std::string(e.what()) + "\n\nJUSTC v" + JUSTC_VERSION);
     }
     #endif
+}
+std::vector<ParserToken> Parser::optimize(const std::vector<ParserToken>& tokens, bool doExecute, bool runAsync, const std::string& input, const bool allowJavaScript, const bool canAllowJS, const std::string scriptName, const std::string scriptType, const bool allowLuau, const bool canAllowLuau) {
+    try {
+        Parser parser(tokens, doExecute, runAsync, input, allowJavaScript, canAllowJS, scriptName, scriptType, allowLuau, canAllowLuau, false, nullptr, CharType::GRAPHEME, ParserType::OPTIMIZE);
+        try {
+            parser.parse(doExecute);
+        } catch (...) {
+            if (parser.optimizedTokens.empty()) {
+                return tokens;
+            }
+
+            const auto lastStart = parser.optimizedTokens.back().start;
+
+            const auto it = std::find_if(
+                tokens.begin(),
+                tokens.end(),
+                [lastStart](const ParserToken& token) {
+                    return token.start > lastStart;
+                }
+            );
+
+            if (it != tokens.end()) {
+                parser.optimizedTokens.insert(
+                    parser.optimizedTokens.end(),
+                    it,
+                    tokens.end()
+                );
+            }
+        }
+        return parser.optimizedTokens;
+    } catch (...) {
+        return tokens;
+    }
 }

@@ -787,12 +787,13 @@ struct ParseResult {
     std::string error;
     std::vector<std::vector<std::string>> importLogs;
     bool array;
+    bool doExec;
 
     std::shared_ptr<std::unordered_map<std::string, Value>> variables;
     std::shared_ptr<std::unordered_map<std::string, bool>> constants;
     std::shared_ptr<std::unordered_map<std::string, std::vector<std::string>>> dependencies;
 
-    ParseResult() : logFilePath(""), logFileContent(""), error(""), array(false) {}
+    ParseResult() : logFilePath(""), logFileContent(""), error(""), array(false), doExec(false) {}
 };
 
 struct JSONObject {
@@ -856,6 +857,7 @@ enum class ParserType : uint8_t {
     STRUCT = 1,
     CLASS = 2,
     ENUM = 3,
+    OPTIMIZE = 4,
 };
 
 struct PropertyPathNode {
@@ -1004,7 +1006,7 @@ private:
     Value parseFactor(bool doExecute, bool identifierMode, bool doFunctionCall, bool ignoreColon = false);
     Value parsePower(bool doExecute, bool identifierMode, bool doFunctionCall, bool ignoreColon = false);
     Value parseUnary(bool doExecute, bool identifierMode = false, bool doFunctionCall = true, bool ignoreColon = false);
-    Value parseFunctionCall(bool doExecute, bool doFunctionCall = true);
+    Value parseFunctionCall(bool doExecute, bool doFunctionCall = true, bool custom = false, size_t customStart = 0);
     Value parseSpaceCall(bool doExecute, bool doFunctionCall = true);
     std::vector<Value> parseLambda(bool doExecute, size_t pos);
 
@@ -1103,7 +1105,7 @@ private:
     Value parseFunctionDeclaration(bool doExecute, std::string funcName = "anonymous", bool requireName = true);
     Value emptyJUSTC();
 
-    Value parseCondition(bool doExecute, bool wasIsolated = false);
+    Value parseCondition(bool doExecute, bool wasIsolated = false, bool skip_ = false);
     Value i2v(Value fromIsolated);
     std::string t2i(ParserToken toIsolated);
 
@@ -1236,6 +1238,7 @@ public:
     Parser(const std::vector<ParserToken>& tokens, bool doExecute = true, bool runAsync = false, const std::string& input = "", const bool allowJavaScript = true, const bool canAllowJS = true, const std::string scriptName = "", const std::string scriptType = "script", const bool allowLuau = true, const bool canAllowLuau = true, const bool isFunction = false, const std::unordered_map<std::string, Value>* initialContext = nullptr, const CharType chartype = CharType::GRAPHEME, const ParserType parsertype = ParserType::SCRIPT);
     ParseResult parse(bool doExecute = true);
     static ParseResult parseTokens(const std::vector<ParserToken>& tokens, bool doExecute = true, bool runAsync = false, const std::string& input = "", const bool allowJavaScript = true, const bool canAllowJS = true, const std::string scriptName = "", const std::string scriptType = "script", const bool allowLuau = true, const bool canAllowLuau = true);
+    static std::vector<ParserToken> optimize(const std::vector<ParserToken>& tokens, bool doExecute = true, bool runAsync = false, const std::string& input = "", const bool allowJavaScript = false, const bool canAllowJS = false, const std::string scriptName = "", const std::string scriptType = "script", const bool allowLuau = false, const bool canAllowLuau = false);
 
     Value parseExpression(bool doExecute, bool identifierMode = false, bool doFunctionCall = true, bool ignoreColon = false);
     Value callFunction(const Value& function, const std::vector<Value>& args, size_t startPos, bool doExecute);
@@ -1299,6 +1302,8 @@ public:
     bool throwError;
     
     Value This();
+
+    std::vector<ParserToken> optimizedTokens;
 };
 
 #endif

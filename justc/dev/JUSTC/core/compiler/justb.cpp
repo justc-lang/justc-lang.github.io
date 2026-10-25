@@ -320,19 +320,30 @@ CompressionResult JustbCompiler::selectBestCompression(const std::vector<uint8_t
     return best;
 }
 
-bool JustbCompiler::compile(const ParseResult& result, const std::string& outputPath, bool noCompression) {
+bool JustbCompiler::compile(const ParseResult& result, const std::string& outputPath, bool noCompression, bool optimize) {
     std::ofstream out(outputPath, std::ios::binary);
     if (!out) return false;
-    return compile(result, out, noCompression);
+    return compile(result, out, noCompression, optimize);
 }
 
-bool JustbCompiler::compile(const ParseResult& result, std::ostream& out, bool noCompression) {
+bool JustbCompiler::compile(const ParseResult& result, std::ostream& out, bool noCompression, bool optimize) {
     #ifndef JUSTC_NOCEREAL
         try {
+            ParseResult input = result;
+            if (optimize) {
+                for (const auto& [key, value] : result.returnValues) {
+                    if (value.type == DataType::FUNCTION && !value.native) {
+                        Value optimized = value;
+                        optimized.function_info.tokens = Parser::optimize(value.function_info.tokens, result.doExec, false, value.string_value);
+                        input.returnValues[key] = optimized;
+                    }
+                }
+            }
+
             std::stringstream buffer(std::ios::binary | std::ios::in | std::ios::out);
             {
                 cereal::BinaryOutputArchive archive(buffer);
-                archive(result.returnValues);
+                archive(input.returnValues);
             }
             
             std::string bufferStr = buffer.str();
