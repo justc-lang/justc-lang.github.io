@@ -40,10 +40,18 @@ struct CompressionResult {
     double ratio;
 };
 
+#ifndef DEFAULT_LOGS
+    #ifdef __EMSCRIPTEN__
+        #define DEFAULT_LOGS false
+    #else
+        #define DEFAULT_LOGS true
+    #endif
+#endif
+
 class JustbCompiler {
 public:
-    static bool compile(const ParseResult& result, const std::string& outputPath, bool noCompression = false, bool optimize = true);
-    static bool compile(const ParseResult& result, std::ostream& out, bool noCompression = false, bool optimize = true);
+    static bool compile(const ParseResult& result, const std::string& outputPath, bool noCompression = false, bool optimize = true, bool logs = DEFAULT_LOGS);
+    static bool compile(const ParseResult& result, std::ostream& out, bool noCompression = false, bool optimize = true, bool logs = DEFAULT_LOGS);
 
     static void setCompressionLevel(int level) { compressionLevel = std::max(1, std::min(9, level)); }
     static int getCompressionLevel() { return compressionLevel; }

@@ -31,5 +31,6 @@ SOFTWARE.
 #include <string>
 
 extern const std::vector<std::string> builtins;
+extern const std::vector<std::string> builtinfunctions;
 
 #endif

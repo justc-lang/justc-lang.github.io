@@ -1175,6 +1175,7 @@ private:
     }
 
     std::vector<std::string> builtins;
+    std::vector<std::string> builtinfunctions;
     std::vector<std::string> cpptypes;
     std::vector<std::string> cppnumbers;
     void initializeBuiltIns();
@@ -1182,6 +1183,7 @@ private:
     bool isBuiltinVariable(const std::string& name) const;
     bool isCPPType();
     bool isCPPNumber(const std::string& cpptype);
+    bool isBuiltinFunction(const std::string& name);
     void handleBuiltinVariableAssignment(const std::string& name, const Value& value, size_t startPos);
     void removeBuiltinVariablesFromOutput();
     void builtinObject(const std::string& name, std::unordered_map<std::string, Value> props);
@@ -1232,13 +1234,16 @@ private:
     std::string parseStringInterpolation(bool doExecute);
     std::string evaluateInterpolationExpression(const std::string& expr, bool doExecute);
 
+    std::string makeLog(const std::string& log);
+    std::string makeCompilerError(const std::string& error, const bool level = true);
+
 public:
     static std::string getCurrentTimestamp();
     static Value stringToValue(const std::string& str);
     Parser(const std::vector<ParserToken>& tokens, bool doExecute = true, bool runAsync = false, const std::string& input = "", const bool allowJavaScript = true, const bool canAllowJS = true, const std::string scriptName = "", const std::string scriptType = "script", const bool allowLuau = true, const bool canAllowLuau = true, const bool isFunction = false, const std::unordered_map<std::string, Value>* initialContext = nullptr, const CharType chartype = CharType::GRAPHEME, const ParserType parsertype = ParserType::SCRIPT);
     ParseResult parse(bool doExecute = true);
     static ParseResult parseTokens(const std::vector<ParserToken>& tokens, bool doExecute = true, bool runAsync = false, const std::string& input = "", const bool allowJavaScript = true, const bool canAllowJS = true, const std::string scriptName = "", const std::string scriptType = "script", const bool allowLuau = true, const bool canAllowLuau = true);
-    static std::vector<ParserToken> optimize(const std::vector<ParserToken>& tokens, bool doExecute = true, bool runAsync = false, const std::string& input = "", const bool allowJavaScript = false, const bool canAllowJS = false, const std::string scriptName = "", const std::string scriptType = "script", const bool allowLuau = false, const bool canAllowLuau = false, const std::unordered_map<std::string, Value>* initialContext = nullptr);
+    static std::vector<ParserToken> optimize(const std::vector<ParserToken>& tokens, bool logs = true, bool doExecute = true, bool runAsync = false, const std::string& input = "", const bool allowJavaScript = false, const bool canAllowJS = false, const std::string scriptName = "", const std::string scriptType = "script", const bool allowLuau = false, const bool canAllowLuau = false, const std::unordered_map<std::string, Value>* initialContext = nullptr);
 
     Value parseExpression(bool doExecute, bool identifierMode = false, bool doFunctionCall = true, bool ignoreColon = false);
     Value callFunction(const Value& function, const std::vector<Value>& args, size_t startPos, bool doExecute);
@@ -1304,6 +1309,7 @@ public:
     Value This();
 
     std::vector<ParserToken> optimizedTokens;
+    bool optimizationLogs;
 };
 
 #endif

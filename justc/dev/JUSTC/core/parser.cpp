@@ -1618,50 +1618,58 @@ ParseResult Parser::parse(bool doExecute) {
                 }
                 break;
             } else if (match("JavaScript") || match("JavaScript_i")) {
-                bool interpolation = match("JavaScript_i");
-                if (doExecute && allowJavaScript) {
-                    std::string code = interpolation ? parseStringInterpolation(doExecute) : currentToken().value;
-                    #ifdef __EMSCRIPTEN__
-
-                    Value result = runJavaScript(code, Utility::position(currentToken().start, input), false);
-                    addLog("JAVASCRIPT", Utility::value2string(result), position);
-                    if (result.type != DataType::NULL_TYPE) {
-                        std::cout << Utility::value2string(result) << std::endl;
-                    }
-
-                    #elif !defined(_MSC_VER)
-
-                    std::pair<std::string, bool> jsresult = JavaScript::Eval(code);
-                    if (jsresult.second) {
-                        throw std::runtime_error("JavaScript error at " + Utility::position(currentToken().start, input) + ":\n" + jsresult.first);
-                    } else {
-                        addLog("JAVASCRIPT", jsresult.first, position);
-                        std::cout << jsresult.first << std::endl;
-                    }
-
-                    #endif
-                } else if (!allowJavaScript) {
-                    #ifdef __EMSCRIPTEN__
-                    warn_js_disabled_by_justc(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
-                    #endif
-                }
-                ast.push_back(ASTNode("JAVASCRIPT"));
-                if (!interpolation) advance();
-            } else if (match("Luau") || match("Luau_i")) {
-                #ifndef JUSTC_NOLUAU
-                    bool interpolation = match("Luau_i");
-                    if (doExecute && allowLuau) {
-                        RunLuau::runScript(interpolation ? parseStringInterpolation(doExecute) : currentToken().value);
-                    } else if (!allowLuau) {
+                if (parsertype != ParserType::OPTIMIZE) {
+                    bool interpolation = match("JavaScript_i");
+                    if (doExecute && allowJavaScript) {
+                        std::string code = interpolation ? parseStringInterpolation(doExecute) : currentToken().value;
                         #ifdef __EMSCRIPTEN__
-                        warn_luau_disabled_by_justc(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
+
+                        Value result = runJavaScript(code, Utility::position(currentToken().start, input), false);
+                        addLog("JAVASCRIPT", Utility::value2string(result), position);
+
+                        #elif !defined(_MSC_VER)
+
+                        std::pair<std::string, bool> jsresult = JavaScript::Eval(code);
+                        if (jsresult.second) {
+                            throw std::runtime_error("JavaScript error at " + Utility::position(currentToken().start, input) + ":\n" + jsresult.first);
+                        } else {
+                            addLog("JAVASCRIPT", jsresult.first, position);
+                        }
+
                         #endif
-                    }
+                        if (!interpolation) advance();
+                    } else if (!allowJavaScript) {
+                        #ifdef __EMSCRIPTEN__
+                        warn_js_disabled_by_justc(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
+                        #endif
+                        advance();
+                    } else advance();
+                    ast.push_back(ASTNode("JAVASCRIPT"));
+                } else {
+                    advance();
+                    ast.push_back(ASTNode("JAVASCRIPT"));
+                }
+            } else if (match("Luau") || match("Luau_i")) {
+                if (parsertype != ParserType::OPTIMIZE) {
+                    #ifndef JUSTC_NOLUAU
+                        bool interpolation = match("Luau_i");
+                        if (doExecute && allowLuau) {
+                            RunLuau::runScript(interpolation ? parseStringInterpolation(doExecute) : currentToken().value);
+                            if (!interpolation) advance();
+                        } else if (!allowLuau) {
+                            #ifdef __EMSCRIPTEN__
+                            warn_luau_disabled_by_justc(Utility::position(currentToken().start, input).c_str(), currentToken().value.c_str(), getCurrentTimestamp().c_str());
+                            #endif
+                            advance();
+                        } else advance();
+                        ast.push_back(ASTNode("LUAU"));
+                    #else
+                        throw std::runtime_error("To run Luau, use the standard JUSTC build. The current build excludes Luau.");
+                    #endif
+                } else {
+                    advance();
                     ast.push_back(ASTNode("LUAU"));
-                    if (!interpolation) advance();
-                #else
-                    throw std::runtime_error("To run Luau, use the standard JUSTC build. The current build excludes Luau.");
-                #endif
+                }
             } else if (match("call")) {
                 uint32_t hash = currentToken().uint32;
                 size_t startPos = currentToken().start;
@@ -1791,9 +1799,7 @@ ParseResult Parser::parse(bool doExecute) {
             result.returnValues = newReturnValues;
         }
     } catch (const std::exception& e) {
-        std::pair<size_t, size_t> pos = Utility::pos(currentToken().start, input);
-        std::string err = std::string(e.what()) + "\n    at " + scriptName + ":" + std::to_string(pos.first) + ":" + std::to_string(pos.second);
-
+        std::string err = makeLog(std::string(e.what()));
         result.error = err;
         addLog("ERROR", err, currentToken().start);
     }
@@ -3467,8 +3473,14 @@ Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall, bool custom
 
         if (parsertype == ParserType::OPTIMIZE) {
             auto next_it = optimizedTokens.erase(optimizedTokens.begin() + start_, optimizedTokens.begin() + end_);
-            optimizedTokens.insert(next_it, ParserToken{"call", hash_fnv1a(funcName), startPos});
-            std::cout << "found built-in function call \"" << funcName << "\" at " << startPos << std::endl; // debug
+            uint32_t hashed = hash_fnv1a(funcName);
+            optimizedTokens.insert(next_it, ParserToken{"call", hashed, startPos});
+            if (!isBuiltinFunction(funcName)) {
+                throw std::runtime_error(makeCompilerError("Unknown function call \"" + funcName + "\" at " + Utility::position(currentToken().start, input)));
+            }
+            if (optimizationLogs) std::cout << makeLog(
+                "Optimized built-in function call \"" + funcName + "\" to hash " + Utility::uint32ToHexString(hashed) + " at " + Utility::position(currentToken().start, input)
+            ) << std::endl;
             return Value::createNull();
         }
         return executeFunction(funcName, args, currentToken().start);
@@ -3506,10 +3518,10 @@ ASTNode Parser::parseCommand(bool doExecute) {
                 auto varval = resolveVariableValue(message, false);
                 if (varval.type == DataType::UNKNOWN) {
                     addLog("ECHO", message, node.startPos);
-                    std::cout << message << std::endl;
+                    if (parsertype != ParserType::OPTIMIZE) std::cout << message << std::endl;
                 } else {
                     addLog("ECHO", Utility::value2string(varval), node.startPos);
-                    std::cout << Utility::value2string(varval) << std::endl;
+                    if (parsertype != ParserType::OPTIMIZE) std::cout << Utility::value2string(varval) << std::endl;
                 }
             }
         } else if (command == "logfile") {
@@ -3547,10 +3559,10 @@ ASTNode Parser::parseCommand(bool doExecute) {
                 auto varval = resolveVariableValue(message, false);
                 if (varval.type == DataType::UNKNOWN) {
                     addLog("ECHO", message, node.startPos);
-                    std::cout << message << std::endl;
+                    if (parsertype != ParserType::OPTIMIZE) std::cout << message << std::endl;
                 } else {
                     addLog("ECHO", Utility::value2string(varval), node.startPos);
-                    std::cout << Utility::value2string(varval) << std::endl;
+                    if (parsertype != ParserType::OPTIMIZE) std::cout << Utility::value2string(varval) << std::endl;
                 }
             }
         } else if (command == "logfile") {
@@ -6687,7 +6699,7 @@ Value Parser::functionECHO(const std::vector<Value>& args) {
         }
 
         addLog("ECHO", message, currentToken().start);
-        std::cout << message << std::endl;
+        if (parsertype != ParserType::OPTIMIZE) std::cout << message << std::endl;
     }
     return Value();
 }
@@ -7369,6 +7381,7 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
     FunctionInfo funcInfo;
     funcInfo.isIsolated = isIsolated;
     std::vector<std::string> paramNames;
+    std::vector<std::string> funcParams;
 
     while (!match(")") && !isEnd()) {
         if (match("identifier")) {
@@ -7401,6 +7414,14 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
             funcInfo.paramNames.push_back(paramName);
             funcInfo.paramTypes.push_back(paramType);
             funcInfo.defaultValues.push_back(hasDefault ? defaultValue : Value::createNull());
+
+            if (parsertype == ParserType::OPTIMIZE && (
+                paramType == DataType::FUNCTION || (
+                    hasDefault && defaultValue.type == DataType::FUNCTION
+                )
+            )) {
+                funcParams.push_back(paramName);
+            }
 
             if (match(",")) {
                 advance();
@@ -7468,8 +7489,14 @@ Value Parser::parseFunctionDeclaration(bool doExecute, std::string funcName, boo
         for (Value importedVar : importedContext) {
             functionContext[importedVar.name] = importedVar;
         }
+        for (std::string funcParam : funcParams) {
+            functionContext[funcParam] = createFunction([](const std::vector<Value>& args) -> Value {
+                return Value::createNull();
+            }, funcParam);
+        }
         funcInfo.tokens = Parser::optimize(
             funcInfo.tokens,
+            optimizationLogs,
             doExecute,
             runAsync,
             input,
@@ -8399,9 +8426,13 @@ bool Parser::isCPPNumber(const std::string& cpptype) {
 }
 void Parser::initializeBuiltIns() {
     builtins = ::builtins;
+    builtinfunctions = ::builtinfunctions;
 }
 bool Parser::isBuiltinVariable(const std::string& name) const {
     return std::find(builtins.begin(), builtins.end(), name) != builtins.end();
+}
+bool Parser::isBuiltinFunction(const std::string& name) {
+    return std::find(builtinfunctions.begin(), builtinfunctions.end(), name) != builtinfunctions.end();
 }
 void Parser::handleBuiltinVariableAssignment(const std::string& name, const Value& value, size_t startPos) {
     if (name == "charType") {
@@ -9650,6 +9681,14 @@ Value Parser::This() {
     return result;
 }
 
+std::string Parser::makeLog(const std::string& log) {
+    std::pair<size_t, size_t> pos = Utility::pos(currentToken().start, input);
+    return log + "\n    at " + scriptName + ":" + std::to_string(pos.first) + ":" + std::to_string(pos.second);
+}
+std::string Parser::makeCompilerError(const std::string& error, const bool level) {
+    return std::string(level ? "error" : "warning") + ": " + makeLog(error);
+}
+
 ParseResult Parser::parseTokens(const std::vector<ParserToken>& tokens, bool doExecute, bool runAsync, const std::string& input, const bool allowJavaScript, const bool canAllowJS, const std::string scriptName, const std::string scriptType, const bool allowLuau, const bool canAllowLuau) {
     #ifndef __EMSCRIPTEN__
     try {
@@ -9664,9 +9703,10 @@ ParseResult Parser::parseTokens(const std::vector<ParserToken>& tokens, bool doE
     }
     #endif
 }
-std::vector<ParserToken> Parser::optimize(const std::vector<ParserToken>& tokens, bool doExecute, bool runAsync, const std::string& input, const bool allowJavaScript, const bool canAllowJS, const std::string scriptName, const std::string scriptType, const bool allowLuau, const bool canAllowLuau, const std::unordered_map<std::string, Value>* initialContext) {
+std::vector<ParserToken> Parser::optimize(const std::vector<ParserToken>& tokens, bool logs, bool doExecute, bool runAsync, const std::string& input, const bool allowJavaScript, const bool canAllowJS, const std::string scriptName, const std::string scriptType, const bool allowLuau, const bool canAllowLuau, const std::unordered_map<std::string, Value>* initialContext) {
     try {
         Parser parser(tokens, doExecute, runAsync, input, allowJavaScript, canAllowJS, scriptName, scriptType, allowLuau, canAllowLuau, false, initialContext, CharType::GRAPHEME, ParserType::OPTIMIZE);
+        parser.optimizationLogs = logs;
         try {
             parser.parse(doExecute);
         } catch (...) {
