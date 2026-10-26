@@ -1310,6 +1310,9 @@ public:
 
     std::vector<ParserToken> optimizedTokens;
     bool optimizationLogs;
+    bool optimizationError;
+
+    static std::string makeError(const std::string& error);
 };
 
 #endif

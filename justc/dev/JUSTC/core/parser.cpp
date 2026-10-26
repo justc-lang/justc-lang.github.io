@@ -861,7 +861,7 @@ Parser::Parser(
     strictMode(false), hasLogFile(false), allowLuau(allowLuau), canAllowLuau(canAllowLuau), doExecute(doExecute), runAsync(runAsync),
     canAllowJS(allowJavaScript ? true : canAllowJS), scriptName(scriptName), scriptType(scriptType), asJSON(false), isJSONArray(false),
     endOfScript("."), returnValue(DataType::UNKNOWN), isFunction(isFunction), chartype(chartype), currentScope(0), rootIndex(0),
-    parsertype(parsertype), nextStructConstructor(0), nextIndex(0), throwError(false), hasWindow(false)
+    parsertype(parsertype), nextStructConstructor(0), nextIndex(0), throwError(false), hasWindow(false), optimizationError(false)
 {
     if (parsertype == ParserType::OPTIMIZE) {
         doExecute = false;
@@ -3476,6 +3476,7 @@ Value Parser::parseFunctionCall(bool doExecute, bool doFunctionCall, bool custom
             uint32_t hashed = hash_fnv1a(funcName);
             optimizedTokens.insert(next_it, ParserToken{"call", hashed, startPos});
             if (!isBuiltinFunction(funcName)) {
+                optimizationError = true;
                 throw std::runtime_error(makeCompilerError("Unknown function call \"" + funcName + "\" at " + Utility::position(currentToken().start, input)));
             }
             if (optimizationLogs) std::cout << makeLog(
@@ -9688,6 +9689,9 @@ std::string Parser::makeLog(const std::string& log) {
 std::string Parser::makeCompilerError(const std::string& error, const bool level) {
     return std::string(level ? "error" : "warning") + ": " + makeLog(error);
 }
+std::string Parser::makeError(const std::string& error) {
+    return error + "\n\nJUSTC v" + JUSTC_VERSION;
+}
 
 ParseResult Parser::parseTokens(const std::vector<ParserToken>& tokens, bool doExecute, bool runAsync, const std::string& input, const bool allowJavaScript, const bool canAllowJS, const std::string scriptName, const std::string scriptType, const bool allowLuau, const bool canAllowLuau) {
     #ifndef __EMSCRIPTEN__
@@ -9699,7 +9703,7 @@ ParseResult Parser::parseTokens(const std::vector<ParserToken>& tokens, bool doE
 
     #ifndef __EMSCRIPTEN__
     } catch (const std::exception& e) {
-        throw std::runtime_error(std::string(e.what()) + "\n\nJUSTC v" + JUSTC_VERSION);
+        throw std::runtime_error(makeError(std::string(e.what())));
     }
     #endif
 }
@@ -9709,8 +9713,10 @@ std::vector<ParserToken> Parser::optimize(const std::vector<ParserToken>& tokens
         parser.optimizationLogs = logs;
         try {
             parser.parse(doExecute);
-        } catch (...) {
-            if (parser.optimizedTokens.empty()) {
+        } catch (const std::exception& e) {
+            if (parser.optimizationError) {
+                throw std::runtime_error(makeError(std::string(e.what())));
+            } else if (parser.optimizedTokens.empty()) {
                 return tokens;
             }
 
