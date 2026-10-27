@@ -9690,7 +9690,7 @@ std::string Parser::makeLog(const std::string& log) {
     return log + "\n    at " + scriptName + ":" + std::to_string(pos.first) + ":" + std::to_string(pos.second);
 }
 std::string Parser::makeCompilerError(const std::string& error, const bool level) {
-    return std::string(level ? "error" : "warning") + ": " + makeLog(error);
+    return std::string(level ? "Error" : "Warning") + ": " + makeLog(error);
 }
 std::string Parser::makeError(const std::string& error) {
     return error + "\n\nJUSTC v" + JUSTC_VERSION;

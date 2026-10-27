@@ -588,7 +588,7 @@ void handleCompileJustb(const CommandLineFlags& flags) {
     }
 
     std::stringstream ss;
-    if (!JustbCompiler::compile(result, ss, flags.noCompression, flags.optimization)) {
+    if (!JustbCompiler::compile(result, ss, flags.noCompression, flags.optimization, true, code, flags.input)) {
         throwError("Failed to compile to JUSTB");
     }
 
