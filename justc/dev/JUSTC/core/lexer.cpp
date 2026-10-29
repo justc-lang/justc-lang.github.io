@@ -98,7 +98,7 @@ std::string Lexer::readUnicodeChar() {
     else if ((first & 0xF8) == 0xF0) charLen = 4;
 
     if (position + charLen > input.length()) {
-        throw std::runtime_error("Encoding error: Invalid UTF-8 sequence at " + Utility::position(position, input) + ".");
+        throw std::runtime_error("Encoding error: Invalid UTF-8 sequence at " + Utility::position(position, input));
     }
 
     std::string result = input.substr(position, charLen);
@@ -559,7 +559,7 @@ ParserToken Lexer::readJSX() {
     ++position;
     
     if (position >= input.length()) {
-        throw std::runtime_error("Unexpected EOF at Element at " + Utility::position(position, input) + ".");
+        throw std::runtime_error("Unexpected EOF at Element at " + Utility::position(position, input));
     }
     
     if (input[position] == '/') {
@@ -906,8 +906,8 @@ void Lexer::tokenize() {
             continue;
         }
         if (ch == '}') {
-            if (braceDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \"}\" at " + Utility::position(position, input) + ".");
-            if (waitFor != 1 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \"}\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input) + ".");
+            if (braceDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \"}\" at " + Utility::position(position, input));
+            if (waitFor != 1 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \"}\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input));
             addDollarBefore();
             --braceDepth;
             tokens.push_back(ParserToken{"}", "}", position});
@@ -927,8 +927,8 @@ void Lexer::tokenize() {
             continue;
         }
         if (ch == ']') {
-            if (bracketDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \"]\" at " + Utility::position(position, input) + ".");
-            if (waitFor != 2 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \"]\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input) + ".");
+            if (bracketDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \"]\" at " + Utility::position(position, input));
+            if (waitFor != 2 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \"]\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input));
             addDollarBefore();
             --bracketDepth;
             tokens.push_back(ParserToken{"]", "]", position});
@@ -948,8 +948,8 @@ void Lexer::tokenize() {
             continue;
         }
         if (ch == ')') {
-            if (parenthesisDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \")\" at " + Utility::position(position, input) + ".");
-            if (waitFor != 3 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \")\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input) + ".");
+            if (parenthesisDepth <= 0) throw std::runtime_error("Unmatched closing delimiter \")\" at " + Utility::position(position, input));
+            if (waitFor != 3 && waitFor != 0) throw std::runtime_error("Mismatched closing delimiter \")\" (expected \"" + waitForToString() + "\") at " + Utility::position(position, input));
             addDollarBefore();
             --parenthesisDepth;
             tokens.push_back(ParserToken{")", ")", position});
@@ -976,7 +976,7 @@ void Lexer::tokenize() {
                         #ifdef __EMSCRIPTEN__
                         warn_lexer_goto(Parser::getCurrentTimestamp().c_str(), Utility::position(position, input).c_str());
                         #else
-                        std::cout << warnPrefix + "Warning: Found goto loop at " + Utility::position(position, input) + "." << std::endl;
+                        std::cout << warnPrefix + "Warning: Found goto loop at " + Utility::position(position, input) << std::endl;
                         #endif
                         continue;
                     }
@@ -993,7 +993,7 @@ void Lexer::tokenize() {
 
                         continue;
                     } catch (...) {
-                        throw std::runtime_error("Invalid goto usage at " + Utility::position(position, input) + ".");
+                        throw std::runtime_error("Invalid goto usage at " + Utility::position(position, input));
                     }
                 }
             }
@@ -1139,9 +1139,9 @@ void Lexer::tokenize() {
         ++position;
     }
 
-    if (braceDepth > 0) throw std::runtime_error("Unclosed delimiter \"{\" at " + Utility::position(firstBrace, input) + ".");
-    if (bracketDepth > 0) throw std::runtime_error("Unclosed delimiter \"[\" at " + Utility::position(firstBracket, input) + ".");
-    if (parenthesisDepth > 0) throw std::runtime_error("Unclosed delimiter \"(\" at " + Utility::position(firstParenthesis, input) + ".");
+    if (braceDepth > 0) throw std::runtime_error("Unclosed delimiter \"{\" at " + Utility::position(firstBrace, input));
+    if (bracketDepth > 0) throw std::runtime_error("Unclosed delimiter \"[\" at " + Utility::position(firstBracket, input));
+    if (parenthesisDepth > 0) throw std::runtime_error("Unclosed delimiter \"(\" at " + Utility::position(firstParenthesis, input));
 
     addDollarBefore();
 }
