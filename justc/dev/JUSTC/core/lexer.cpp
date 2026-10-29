@@ -854,6 +854,18 @@ void Lexer::tokenize() {
             continue;
         }
 
+        if (ch == '.' && peek() == '#') {
+            addDollarBefore();
+            tokens.push_back(ParserToken{".#", ".#", position});
+            ++position;
+            continue;
+        }
+        if (ch == '#' && peek() == '#') {
+            addDollarBefore();
+            tokens.push_back(ParserToken{"##", "##", position});
+            ++position;
+            continue;
+        }
         if (isDigit(ch) || (
             ch == '#' && isDigit(peek())
         )) {
@@ -1120,6 +1132,11 @@ void Lexer::tokenize() {
             continue;
         }
 
+        if (ch == '~' && peek() == '~') { // eliminates bitwise NOT chains
+            addDollarBefore();
+            position += 2;
+            continue;
+        }
         if (ch == '~') {
             addDollarBefore();
             tokens.push_back(ParserToken{"~", "~", position});
