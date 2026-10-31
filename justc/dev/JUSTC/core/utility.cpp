@@ -39,6 +39,7 @@ SOFTWARE.
 #include <vector>
 #include <algorithm>
 #include <type_traits>
+#include <limits>
 #ifdef __EMSCRIPTEN__
 #include "utility.emscripten.h"
 #endif
@@ -46,10 +47,8 @@ SOFTWARE.
 std::string Utility::numberValue2string(const Value& value) {
     if (static_cast<bool>(value.numeric_data)) {
         return value.toNumericString();
-    } else if (value.number_value == std::floor(value.number_value)) {
-        return std::to_string(static_cast<long long>(value.number_value));
     } else {
-        return std::to_string(value.number_value);
+        return doubleToString(value.number_value);
     }
 }
 
@@ -621,9 +620,22 @@ bool StringEscape::isValidEscape(const std::string& str) {
     return true;
 }
 
+std::string Utility::floatToString(float value) {
+    std::ostringstream oss;
+    oss << std::setprecision(std::numeric_limits<float>::max_digits10)
+        << std::noshowpoint << value;
+    return oss.str();
+}
 std::string Utility::doubleToString(double value) {
     std::ostringstream oss;
-    oss << std::noshowpoint << value;
+    oss << std::setprecision(std::numeric_limits<double>::max_digits10)
+        << std::noshowpoint << value;
+    return oss.str();
+}
+std::string Utility::longDoubleToString(long double value) {
+    std::ostringstream oss;
+    oss << std::setprecision(std::numeric_limits<long double>::max_digits10)
+        << std::noshowpoint << value;
     return oss.str();
 }
 

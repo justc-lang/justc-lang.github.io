@@ -643,13 +643,13 @@ std::string Value::toNumericString() const {
     std::stringstream ss;
     switch (numeric_data->type) {
         case NumericType::FLOAT32:
-            ss << std::setprecision(7) << *(float*)numeric_data->data;
+            ss << Utility::floatToString(getNumericValue<float>());
             break;
         case NumericType::FLOAT64:
-            ss << std::setprecision(15) << *(double*)numeric_data->data;
+            ss << Utility::doubleToString(getNumericValue<double>());
             break;
         case NumericType::BIGNUM:
-            ss << std::setprecision(18) << *(long double*)numeric_data->data;
+            ss << Utility::longDoubleToString(getNumericValue<long double>());
             break;
         case NumericType::INT8:
             ss << (int)*(int8_t*)numeric_data->data;

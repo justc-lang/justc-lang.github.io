@@ -235,7 +235,9 @@ public:
     static bool checkObjects(const Value& left, const Value& right);
     static bool checkString(const Value& val);
     static bool checkStrings(const Value& left, const Value& right);
+    static std::string floatToString(float value);
     static std::string doubleToString(double value);
+    static std::string longDoubleToString(long double value);
     static bool compareValues(const Value& left, const Value& right);
     static bool compareValues(const Value::Property& left, const Value& right);
     static bool compareValues(const Value& left, const Value::Property& right);
