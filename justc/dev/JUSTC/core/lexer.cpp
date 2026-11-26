@@ -214,16 +214,68 @@ ParserToken Lexer::readNumber() {
     bool enableType = false;
     bool allowCommaDecimal = true;
 
+    /*
+         ____________________________________________________
+        | Numeric Type                          | Postfix    |
+        |---------------------------------------|------------|
+        | Int8                                  | y          |
+        | Int16                                 | s          |
+        | Int32                                 | i          |
+        | Int64                                 | l          |
+        | Int128                                | z          |
+        | Int256                                | t          |
+        | Int512                                | w          |
+        | Int1024                               | g          |
+        | UInt8                                 | Y          |
+        | UInt16                                | S          |
+        | UInt32                                | u          |
+        | UInt64                                | L          |
+        | UInt128                               | Z          |
+        | UInt256                               | T          |
+        | UInt512                               | W          |
+        | UInt1024                              | G          |
+        | Clamped UInt8                         | c          |
+        | Clamped UInt16                        | C          |
+        | Clamped UInt32                        | v          |
+        | Clamped UInt64                        | V          |
+        | Clamped UInt128                       | k          |
+        | Clamped UInt256                       | K          |
+        | Clamped UInt512                       | j          |
+        | Clamped UInt1024                      | J          |
+        | Float16                               | h          |
+        | Brain Float16                         | b          |
+        | Float32                               | f          |
+        | Float64                               | d          |
+        | Float128                              | q          |
+        | Float256                              | o          |
+        | Float512                              | p          |
+        | Float1024                             | m          |
+        | BigNum                                | n          |
+        | Rational                              | r          |
+        |---------------------------------------|------------|
+
+    */
     enum class NumType {
-        big,
-        int_,
-        exp,
+        big, exp, rat,
+        i8, i16, i32, i64, i128, i256, i512, i1024,
+        u8, u16, u32, u64, u128, u256, u512, u1024,
+        c8, c16, c32, c64, c128, c256, c512, c1024,
+        f16, b16, f32, f64, f128, f256, f512, f1024,
     };
     NumType numtype = NumType::big;
     static const std::unordered_map<char, NumType> NumTypes = {
-        {'b', NumType::big},
-        {'i', NumType::int_},
-        {'e', NumType::exp},
+        {'n', NumType::big  }, {'e', NumType::exp  }, {'r', NumType::rat  },
+        {'y', NumType::i8   }, {'s', NumType::i16  }, {'i', NumType::i32  },
+        {'l', NumType::i64  }, {'z', NumType::i128 }, {'t', NumType::i256 },
+        {'w', NumType::i512 }, {'g', NumType::i1024}, {'Y', NumType::u8   },
+        {'S', NumType::u16  }, {'u', NumType::u32  }, {'L', NumType::u64  },
+        {'Z', NumType::u128 }, {'T', NumType::u256 }, {'W', NumType::u512 },
+        {'G', NumType::u1024}, {'c', NumType::c8   }, {'C', NumType::c16  },
+        {'v', NumType::c32  }, {'V', NumType::c64  }, {'k', NumType::c128 },
+        {'K', NumType::c256 }, {'j', NumType::c512 }, {'J', NumType::c1024},
+        {'h', NumType::f16  }, {'b', NumType::b16  }, {'f', NumType::f32  },
+        {'d', NumType::f64  }, {'q', NumType::f128 }, {'o', NumType::f256 },
+        {'p', NumType::f512 }, {'m', NumType::f1024},
     };
 
     if (braceDepth > 0 || bracketDepth > 0 || parenthesisDepth > 0) {
@@ -326,13 +378,107 @@ ParserToken Lexer::readNumber() {
                 case NumType::big:
                     type = "big";
                     break;
-
-                case NumType::int_:
-                    type = "int";
-                    break;
-
                 case NumType::exp:
                     type = "exp";
+                    break;
+                case NumType::rat:
+                    type = "rational";
+                    break;
+                case NumType::i8:
+                    type = "i8";
+                    break;
+                case NumType::i16:
+                    type = "i16";
+                    break;
+                case NumType::i32:
+                    type = "i32";
+                    break;
+                case NumType::i64:
+                    type = "i64";
+                    break;
+                case NumType::i128:
+                    type = "i128";
+                    break;
+                case NumType::i256:
+                    type = "i256";
+                    break;
+                case NumType::i512:
+                    type = "i512";
+                    break;
+                case NumType::i1024:
+                    type = "i1024";
+                    break;
+                case NumType::u8:
+                    type = "u8";
+                    break;
+                case NumType::u16:
+                    type = "u16";
+                    break;
+                case NumType::u32:
+                    type = "u32";
+                    break;
+                case NumType::u64:
+                    type = "u64";
+                    break;
+                case NumType::u128:
+                    type = "u128";
+                    break;
+                case NumType::u256:
+                    type = "u256";
+                    break;
+                case NumType::u512:
+                    type = "u512";
+                    break;
+                case NumType::u1024:
+                    type = "u1024";
+                    break;
+                case NumType::c8:
+                    type = "c8";
+                    break;
+                case NumType::c16:
+                    type = "c16";
+                    break;
+                case NumType::c32:
+                    type = "c32";
+                    break;
+                case NumType::c64:
+                    type = "c64";
+                    break;
+                case NumType::c128:
+                    type = "c128";
+                    break;
+                case NumType::c256:
+                    type = "c256";
+                    break;
+                case NumType::c512:
+                    type = "c512";
+                    break;
+                case NumType::c1024:
+                    type = "c1024";
+                    break;
+                case NumType::f16:
+                    type = "f16";
+                    break;
+                case NumType::b16:
+                    type = "b16";
+                    break;
+                case NumType::f32:
+                    type = "f32";
+                    break;
+                case NumType::f64:
+                    type = "f64";
+                    break;
+                case NumType::f128:
+                    type = "f128";
+                    break;
+                case NumType::f256:
+                    type = "f256";
+                    break;
+                case NumType::f512:
+                    type = "f512";
+                    break;
+                case NumType::f1024:
+                    type = "f1024";
                     break;
             }
         }

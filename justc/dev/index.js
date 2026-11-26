@@ -26,7 +26,7 @@ SOFTWARE.
 
 /*
 
-The JUSTC Programming Language v0.3.0 (dev)
+The JUSTC Programming Language v0.4.0 (dev)
 https://just.js.org/justc
 npm i justc
 

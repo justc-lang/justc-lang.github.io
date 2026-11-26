@@ -49,11 +49,11 @@ SOFTWARE.
 #endif
 #include <optional>
 #include <boost/multiprecision/cpp_bin_float.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #ifdef _MSC_VER
     #define JUSTC_HAS_INT128 0
     #define JUSTC_HAS_UINT128 0
-    #define JUSTC_HAS_FLOAT128 0
     using int128_t = long long;
     using uint128_t = unsigned long long;
 #elif defined(__SIZEOF_INT128__)
@@ -61,21 +61,78 @@ SOFTWARE.
     #define JUSTC_HAS_UINT128 1
     using int128_t = __int128;
     using uint128_t = unsigned __int128;
-    #ifdef __SIZEOF_FLOAT128__
-        #if JUSTC_HAS_QUADMATH
-            #define JUSTC_HAS_FLOAT128 1
-            #include <quadmath.h>
-        #endif
-    #else
-        #define JUSTC_HAS_FLOAT128 0
-    #endif
 #else
     #define JUSTC_HAS_INT128 0
     #define JUSTC_HAS_UINT128 0
-    #define JUSTC_HAS_FLOAT128 0
     using int128_t = long long;
     using uint128_t = unsigned long long;
 #endif
+
+using float128_t = boost::multiprecision::number< // IEEE 754 binary128: 113 bits / ~34 digits
+    boost::multiprecision::backends::cpp_bin_float<
+        113, 
+        boost::multiprecision::backends::digit_base_2, 
+        void, 
+        std::int16_t, 
+        -16382, 
+        16383
+    >, boost::multiprecision::et_off
+>;
+
+using float256_t = boost::multiprecision::number< // IEEE 754 binary256: 237 bits / ~71 digits
+    boost::multiprecision::backends::cpp_bin_float<
+        237, 
+        boost::multiprecision::backends::digit_base_2, 
+        void, 
+        std::int32_t, 
+        -262142, 
+        262143
+    >, boost::multiprecision::et_off
+>;
+
+using float512_t = boost::multiprecision::number< // IEEE 754 binary512: 489 bits / ~147 digits
+    boost::multiprecision::backends::cpp_bin_float<
+        489, 
+        boost::multiprecision::backends::digit_base_2, 
+        void, 
+        std::int32_t, 
+        -4194302, 
+        4194303
+    >, boost::multiprecision::et_off
+>;
+
+using float1024_t = boost::multiprecision::number< // IEEE 754 binary1024: 997 bits / ~300 digits
+    boost::multiprecision::backends::cpp_bin_float<
+        997, 
+        boost::multiprecision::backends::digit_base_2, 
+        void, 
+        std::int64_t, 
+        -67108862, 
+        67108863
+    >, boost::multiprecision::et_off
+>;
+
+using float16_t = boost::multiprecision::number< // IEEE 754 binary16: 11 bits / ~3 digits
+    boost::multiprecision::backends::cpp_bin_float<
+        11, 
+        boost::multiprecision::backends::digit_base_2, 
+        void, 
+        std::int16_t, 
+        -14, 
+        15
+    >, boost::multiprecision::et_off
+>;
+
+using bfloat16_t = boost::multiprecision::number< // Google Brain: 8 bits / ~4 digits
+    boost::multiprecision::backends::cpp_bin_float<
+        8, 
+        boost::multiprecision::backends::digit_base_2, 
+        void, 
+        std::int16_t, 
+        -126, 
+        127
+    >, boost::multiprecision::et_off
+>;
 
 #ifndef DEFAULT_CPP_TYPE
 #define DEFAULT_CPP_TYPE "_"
@@ -97,111 +154,123 @@ struct ObjectContext {
 };
 
 enum class DataType : int8_t {
-    JUSTC_OBJECT =  0,
-    NUMBER       =  1,
-    STRING       =  2,
-    LINK         =  3,
-    BOOLEAN      =  4,
-    JSON_OBJECT  =  5,
-    JSON_ARRAY   =  6,
-    NULL_TYPE    =  7,
-    HEXADECIMAL  =  9,
-    BINARY       = 11,
-    PATH         = 12,
-    ERROR        = 13,
-    VARIABLE     = 14,
-    FUNCTION     = 15,
-    NOT_A_NUMBER = 17,
-    INFINITE     = 18,
-    SYNTAX_ERROR = 19,
-    OCTAL        = 20,
-    CLASS        = 21,
-    SPACE        = 22,
-    BINARY_DATA  = 23,
-    BIGNUM       = 24,
-    INTEGER      = 25,
-    BASE64       = 26,
-    HTTP_ERROR   = 27,
-    JSX_ELEMENT  = 28,
-    STRUCT       = 29,
-    MAP          = 30,
-    SET          = 31,
-    PROMISE      = 32,
-    ENUM         = 33,
-    POINTER      = 34,
-    NINFINITE    = 35,
+    JUSTC_OBJECT    =  0,
+    NUMBER          =  1,
+    STRING          =  2,
+    LINK            =  3,
+    BOOLEAN         =  4,
+    JSON_OBJECT     =  5,
+    JSON_ARRAY      =  6,
+    NULL_TYPE       =  7,
+    HEXADECIMAL     =  9,
+    BINARY          = 11,
+    PATH            = 12,
+    ERROR           = 13,
+    VARIABLE        = 14,
+    FUNCTION        = 15,
+    NOT_A_NUMBER    = 17,
+    INFINITE        = 18,
+    SYNTAX_ERROR    = 19,
+    OCTAL           = 20,
+    CLASS           = 21,
+    SPACE           = 22,
+    BINARY_DATA     = 23,
+    BIGNUM          = 24,
+    INTEGER         = 25,
+    BASE64          = 26,
+    HTTP_ERROR      = 27,
+    JSX_ELEMENT     = 28,
+    STRUCT          = 29,
+    MAP             = 30,
+    SET             = 31,
+    PROMISE         = 32,
+    ENUM            = 33,
+    POINTER         = 34,
+    NINFINITE       = 35,
 
-    INT8_ARRAY   =-2,
-    INT16_ARRAY  =-3,
-    INT32_ARRAY  =-4,
-    INT64_ARRAY  =-5,
-    UINT8_ARRAY  =-6,
-    UINT16_ARRAY =-7,
-    UINT32_ARRAY =-8,
-    UINT64_ARRAY =-9,
-    CUINT8_ARRAY =-10,
-    CUINT16_ARRAY=-11,
-    CUINT32_ARRAY=-12,
-    CUINT64_ARRAY=-13,
-    FLOAT32_ARRAY=-14,
-    FLOAT64_ARRAY=-15,
+    INT8_ARRAY      =-2,
+    INT16_ARRAY     =-3,
+    INT32_ARRAY     =-4,
+    INT64_ARRAY     =-5,
+    UINT8_ARRAY     =-6,
+    UINT16_ARRAY    =-7,
+    UINT32_ARRAY    =-8,
+    UINT64_ARRAY    =-9,
+    CUINT8_ARRAY    =-10,
+    CUINT16_ARRAY   =-11,
+    CUINT32_ARRAY   =-12,
+    CUINT64_ARRAY   =-13,
+    FLOAT32_ARRAY   =-14,
+    FLOAT64_ARRAY   =-15,
+    FLOAT128_ARRAY  =-16,
+    FLOAT256_ARRAY  =-17,
+    FLOAT512_ARRAY  =-18,
+    FLOAT1024_ARRAY =-19,
+    FLOAT16_ARRAY   =-20,
+    BFLOAT16_ARRAY  =-21,
 
-    UNKNOWN      =-1
+    UNKNOWN         =-1
 };
 
 inline std::string dataTypeToString(DataType type) {
     switch (type) {
-        case DataType::JUSTC_OBJECT: return "Object";
-        case DataType::NUMBER:       return "Number";
-        case DataType::STRING:       return "String";
-        case DataType::LINK:         return "Link";
-        case DataType::BOOLEAN:      return "Boolean";
-        case DataType::JSON_OBJECT:  return "Object";
-        case DataType::JSON_ARRAY:   return "Array";
-        case DataType::NULL_TYPE:    return "Null";
-        case DataType::HEXADECIMAL:  return "Hexadecimal number";
-        case DataType::BINARY:       return "Binary number";
-        case DataType::PATH:         return "Path";
-        case DataType::ERROR:        return "Error";
-        case DataType::VARIABLE:     return "Variable";
-        case DataType::FUNCTION:     return "Function";
-        case DataType::NOT_A_NUMBER: return "NaN";
-        case DataType::INFINITE:     return "Positive Infinity";
-        case DataType::SYNTAX_ERROR: return "Syntax Error";
-        case DataType::OCTAL:        return "Octal number";
-        case DataType::CLASS:        return "Class";
-        case DataType::SPACE:        return "Space";
-        case DataType::BINARY_DATA:  return "Data";
-        case DataType::BIGNUM:       return "Big number";
-        case DataType::INTEGER:      return "Integer";
-        case DataType::BASE64:       return "Base64 number";
-        case DataType::HTTP_ERROR:   return "HTTP Error";
-        case DataType::JSX_ELEMENT:  return "Element";
-        case DataType::STRUCT:       return "Struct";
-        case DataType::MAP:          return "Map";
-        case DataType::SET:          return "Set";
-        case DataType::PROMISE:      return "Promise";
-        case DataType::ENUM:         return "Enum";
-        case DataType::POINTER:      return "Pointer";
-        case DataType::NINFINITE:    return "Negative Infinity";
+        case DataType::JUSTC_OBJECT:    return "Object";
+        case DataType::NUMBER:          return "Number";
+        case DataType::STRING:          return "String";
+        case DataType::LINK:            return "Link";
+        case DataType::BOOLEAN:         return "Boolean";
+        case DataType::JSON_OBJECT:     return "Object";
+        case DataType::JSON_ARRAY:      return "Array";
+        case DataType::NULL_TYPE:       return "Null";
+        case DataType::HEXADECIMAL:     return "Hexadecimal number";
+        case DataType::BINARY:          return "Binary number";
+        case DataType::PATH:            return "Path";
+        case DataType::ERROR:           return "Error";
+        case DataType::VARIABLE:        return "Variable";
+        case DataType::FUNCTION:        return "Function";
+        case DataType::NOT_A_NUMBER:    return "NaN";
+        case DataType::INFINITE:        return "Positive Infinity";
+        case DataType::SYNTAX_ERROR:    return "Syntax Error";
+        case DataType::OCTAL:           return "Octal number";
+        case DataType::CLASS:           return "Class";
+        case DataType::SPACE:           return "Space";
+        case DataType::BINARY_DATA:     return "Data";
+        case DataType::BIGNUM:          return "Big number";
+        case DataType::INTEGER:         return "Integer";
+        case DataType::BASE64:          return "Base64 number";
+        case DataType::HTTP_ERROR:      return "HTTP Error";
+        case DataType::JSX_ELEMENT:     return "Element";
+        case DataType::STRUCT:          return "Struct";
+        case DataType::MAP:             return "Map";
+        case DataType::SET:             return "Set";
+        case DataType::PROMISE:         return "Promise";
+        case DataType::ENUM:            return "Enum";
+        case DataType::POINTER:         return "Pointer";
+        case DataType::NINFINITE:       return "Negative Infinity";
 
-        case DataType::INT8_ARRAY:   return "Int8 Array";
-        case DataType::INT16_ARRAY:  return "Int16 Array";
-        case DataType::INT32_ARRAY:  return "Int32 Array";
-        case DataType::INT64_ARRAY:  return "Int64 Array";
-        case DataType::UINT8_ARRAY:  return "UInt8 Array";
-        case DataType::UINT16_ARRAY: return "UInt16 Array";
-        case DataType::UINT32_ARRAY: return "UInt32 Array";
-        case DataType::UINT64_ARRAY: return "UInt64 Array";
-        case DataType::CUINT8_ARRAY: return "UInt8 clamped Array";
-        case DataType::CUINT16_ARRAY:return "UInt16 clamped Array";
-        case DataType::CUINT32_ARRAY:return "UInt32 clamped Array";
-        case DataType::CUINT64_ARRAY:return "UInt32 clamped Array";
-        case DataType::FLOAT32_ARRAY:return "Float32 Array";
-        case DataType::FLOAT64_ARRAY:return "Float64 Array";
+        case DataType::INT8_ARRAY:      return "Int8 Array";
+        case DataType::INT16_ARRAY:     return "Int16 Array";
+        case DataType::INT32_ARRAY:     return "Int32 Array";
+        case DataType::INT64_ARRAY:     return "Int64 Array";
+        case DataType::UINT8_ARRAY:     return "UInt8 Array";
+        case DataType::UINT16_ARRAY:    return "UInt16 Array";
+        case DataType::UINT32_ARRAY:    return "UInt32 Array";
+        case DataType::UINT64_ARRAY:    return "UInt64 Array";
+        case DataType::CUINT8_ARRAY:    return "UInt8 clamped Array";
+        case DataType::CUINT16_ARRAY:   return "UInt16 clamped Array";
+        case DataType::CUINT32_ARRAY:   return "UInt32 clamped Array";
+        case DataType::CUINT64_ARRAY:   return "UInt32 clamped Array";
+        case DataType::FLOAT16_ARRAY:   return "Float16 Array";
+        case DataType::BFLOAT16_ARRAY:  return "Brain Float16 Array";
+        case DataType::FLOAT32_ARRAY:   return "Float32 Array";
+        case DataType::FLOAT64_ARRAY:   return "Float64 Array";
+        case DataType::FLOAT128_ARRAY:  return "Float128 Array";
+        case DataType::FLOAT256_ARRAY:  return "Float256 Array";
+        case DataType::FLOAT512_ARRAY:  return "Float512 Array";
+        case DataType::FLOAT1024_ARRAY: return "Float1024 Array";
 
-        case DataType::UNKNOWN:      return "unknown";
-        default:                     return "invalid";
+        case DataType::UNKNOWN:         return "unknown";
+        default:                        return "invalid";
     }
 };
 inline std::string dataTypeToTypeDecl(DataType type) {
@@ -244,7 +313,12 @@ enum class NumericType : uint8_t {
     CUINT8 = 15,
     CUINT16 = 16,
     CUINT32 = 17,
-    CUINT64 = 18
+    CUINT64 = 18,
+    FLOAT256 = 19,
+    FLOAT512 = 20,
+    FLOAT1024 = 21,
+    FLOAT16 = 22,
+    BFLOAT16 = 23,
 };
 
 struct NumericValue {
@@ -297,9 +371,12 @@ struct NumericValue {
         else if constexpr (std::is_same_v<T, __int128>) type = NumericType::INT128;
         else if constexpr (std::is_same_v<T, unsigned __int128>) type = NumericType::UINT128;
         #endif
-        #if JUSTC_HAS_FLOAT128
-        else if constexpr (std::is_same_v<T, __float128>) type = NumericType::FLOAT128;
-        #endif
+        else if constexpr (std::is_same_v<T, float128_t>) type = NumericType::FLOAT128;
+        else if constexpr (std::is_same_v<T, float256_t>) type = NumericType::FLOAT256;
+        else if constexpr (std::is_same_v<T, float512_t>) type = NumericType::FLOAT512;
+        else if constexpr (std::is_same_v<T, float1024_t>) type = NumericType::FLOAT1024;
+        else if constexpr (std::is_same_v<T, float16_t>) type = NumericType::FLOAT16;
+        else if constexpr (std::is_same_v<T, bfloat16_t>) type = NumericType::BFLOAT16;
         else type = NumericType::FLOAT64;
     }
     
@@ -352,9 +429,10 @@ struct NumericValue {
             case NumericType::FLOAT32: return sizeof(float);
             case NumericType::FLOAT64: return sizeof(double);
             case NumericType::BIGNUM: return sizeof(long double);
-            #if JUSTC_HAS_FLOAT128
-            case NumericType::FLOAT128: return 16; // __float128
-            #endif
+            case NumericType::FLOAT128: return sizeof(float128_t);
+            case NumericType::FLOAT256: return sizeof(float256_t);
+            case NumericType::FLOAT512: return sizeof(float512_t);
+            case NumericType::FLOAT1024: return sizeof(float1024_t);
             case NumericType::INT8: return sizeof(int8_t);
             case NumericType::INT16: return sizeof(int16_t);
             case NumericType::INT32: return sizeof(int32_t);
@@ -389,6 +467,12 @@ struct NumericValue {
                 data = malloc(size);
                 if (data) {
                     switch (type) {
+                        case NumericType::FLOAT16:
+                            *(float16_t*)data = static_cast<float16_t>(value);
+                            break;
+                        case NumericType::BFLOAT16:
+                            *(bfloat16_t*)data = static_cast<bfloat16_t>(value);
+                            break;
                         case NumericType::FLOAT32:
                             *(float*)data = static_cast<float>(value);
                             break;
@@ -398,11 +482,18 @@ struct NumericValue {
                         case NumericType::BIGNUM:
                             *(long double*)data = static_cast<long double>(value);
                             break;
-                        #if JUSTC_HAS_FLOAT128
                         case NumericType::FLOAT128:
-                            *(__float128*)data = static_cast<__float128>(value);
+                            *(float128_t*)data = static_cast<float128_t>(value);
                             break;
-                        #endif
+                        case NumericType::FLOAT256:
+                            *(float256_t*)data = static_cast<float256_t>(value);
+                            break;
+                        case NumericType::FLOAT512:
+                            *(float512_t*)data = static_cast<float512_t>(value);
+                            break;
+                        case NumericType::FLOAT1024:
+                            *(float1024_t*)data = static_cast<float1024_t>(value);
+                            break;
                         case NumericType::INT8:
                             *(int8_t*)data = static_cast<int8_t>(value);
                             break;
@@ -636,6 +727,34 @@ struct Value {
         auto ptr = std::static_pointer_cast<T>(complex_value);
         if (!ptr) return T{};
         return *ptr;
+    }
+
+    std::string numericTypeString() const {
+        switch (getNumericType()) {
+            case NumericType::FLOAT16: return "Float16";
+            case NumericType::BFLOAT16: return "Brain Float16";
+            case NumericType::FLOAT32: return "Float32";
+            case NumericType::FLOAT128: return "Float128";
+            case NumericType::FLOAT256: return "Float256";
+            case NumericType::FLOAT512: return "Float512";
+            case NumericType::FLOAT1024: return "Float1024";
+            case NumericType::BIGNUM: return "Big";
+            case NumericType::INT8: return "Int8";
+            case NumericType::INT16: return "Int16";
+            case NumericType::INT32: return "Int32";
+            case NumericType::INT64: return "Int64";
+            case NumericType::INT128: return "Int128";
+            case NumericType::UINT8: return "UInt8";
+            case NumericType::UINT16: return "UInt16";
+            case NumericType::UINT32: return "UInt32";
+            case NumericType::UINT64: return "UInt64";
+            case NumericType::UINT128: return "UInt128";
+            case NumericType::CUINT8: return "Clamped UInt8";
+            case NumericType::CUINT16: return "Clamped UInt16";
+            case NumericType::CUINT32: return "Clamped UInt32";
+            case NumericType::CUINT64: return "Clamped UInt64";
+            default: return "Float64";
+        }
     }
 
     #ifndef JUSTC_NOCEREAL
@@ -1069,9 +1188,6 @@ private:
     #else
         long long parseToInt128(const std::string& str);
         unsigned long long parseToUInt128(const std::string& str);
-    #endif
-    #ifdef __SIZEOF_FLOAT128__
-    __float128 parseToFloat128(const std::string& str);
     #endif
 
     Value numberToValue(double num);

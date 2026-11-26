@@ -542,6 +542,12 @@ Value Value::createNumberWithType(T num, NumericType numType) {
     result.numeric_data->data = malloc(size);
     if (static_cast<bool>(result.numeric_data->data)) {
         switch (numType) {
+            case NumericType::FLOAT16:
+                *(float16_t*)result.numeric_data->data = static_cast<float16_t>(num);
+                break;
+            case NumericType::BFLOAT16:
+                *(bfloat16_t*)result.numeric_data->data = static_cast<bfloat16_t>(num);
+                break;
             case NumericType::FLOAT32:
                 *(float*)result.numeric_data->data = static_cast<float>(num);
                 break;
@@ -551,11 +557,18 @@ Value Value::createNumberWithType(T num, NumericType numType) {
             case NumericType::BIGNUM:
                 *(long double*)result.numeric_data->data = static_cast<long double>(num);
                 break;
-            #if JUSTC_FLOAT128_SUPPORT
             case NumericType::FLOAT128:
-                *(__float128*)result.numeric_data->data = static_cast<__float128>(num);
+                *(float128_t*)result.numeric_data->data = static_cast<float128_t>(num);
                 break;
-            #endif
+            case NumericType::FLOAT256:
+                *(float256_t*)result.numeric_data->data = static_cast<float256_t>(num);
+                break;
+            case NumericType::FLOAT512:
+                *(float512_t*)result.numeric_data->data = static_cast<float512_t>(num);
+                break;
+            case NumericType::FLOAT1024:
+                *(float1024_t*)result.numeric_data->data = static_cast<float1024_t>(num);
+                break;
             case NumericType::INT8:
                 *(int8_t*)result.numeric_data->data = static_cast<int8_t>(num);
                 break;
@@ -620,9 +633,10 @@ template Value Value::createNumberWithType<uint64_t>(uint64_t, NumericType);
 template Value Value::createNumberWithType<float>(float, NumericType);
 template Value Value::createNumberWithType<double>(double, NumericType);
 template Value Value::createNumberWithType<long double>(long double, NumericType);
-#if JUSTC_FLOAT128_SUPPORT
-template Value Value::createNumberWithType<__float128>(__float128, NumericType);
-#endif
+template Value Value::createNumberWithType<float128_t>(float128_t, NumericType);
+template Value Value::createNumberWithType<float256_t>(float256_t, NumericType);
+template Value Value::createNumberWithType<float512_t>(float512_t, NumericType);
+template Value Value::createNumberWithType<float1024_t>(float1024_t, NumericType);
 
 Value Parser::createClass(const Class& value, bool hasName, std::string className) {
     return addClass(registerClass(value), hasName, className);
@@ -714,14 +728,33 @@ std::string Value::toNumericString() const {
             ss << *(uint64_t*)numeric_data->data;
             break;
         case NumericType::FLOAT128: {
-            #if JUSTC_FLOAT128_SUPPORT
-                char buffer[64];
-                quadmath_snprintf(buffer, sizeof(buffer), "%.20Qe", 
-                                *(const __float128*)numeric_data->data);
-                ss << buffer;
-            #else
-                ss << std::setprecision(18) << *(long double*)numeric_data->data;
-            #endif
+            float128_t num = getNumericValue<float128_t>();
+            ss << num.str(0, std::ios_base::fmtflags(0));
+            break;
+        }
+        case NumericType::FLOAT256: {
+            float256_t num = getNumericValue<float256_t>();
+            ss << num.str(0, std::ios_base::fmtflags(0));
+            break;
+        }
+        case NumericType::FLOAT512: {
+            float512_t num = getNumericValue<float512_t>();
+            ss << num.str(0, std::ios_base::fmtflags(0));
+            break;
+        }
+        case NumericType::FLOAT1024: {
+            float1024_t num = getNumericValue<float1024_t>();
+            ss << num.str(0, std::ios_base::fmtflags(0));
+            break;
+        }
+        case NumericType::FLOAT16: {
+            float16_t num = getNumericValue<float16_t>();
+            ss << num.str(0, std::ios_base::fmtflags(0));
+            break;
+        }
+        case NumericType::BFLOAT16: {
+            bfloat16_t num = getNumericValue<bfloat16_t>();
+            ss << num.str(0, std::ios_base::fmtflags(0));
             break;
         }
         default:
@@ -1277,6 +1310,14 @@ Parser::Parser(
     mathProperties["tan"]       = builtinObjectFunction("math.tan");
     mathProperties["toDegrees"] = builtinObjectFunction("math.toDegrees");
     mathProperties["toRadians"] = builtinObjectFunction("math.toRadians");
+    mathProperties["pi128"]     = Value::createNumberWithType(Math::PI128, NumericType::FLOAT128);
+    mathProperties["pi256"]     = Value::createNumberWithType(Math::PI256, NumericType::FLOAT256);
+    mathProperties["pi512"]     = Value::createNumberWithType(Math::PI512, NumericType::FLOAT512);
+    mathProperties["pi1024"]    = Value::createNumberWithType(Math::PI1024, NumericType::FLOAT1024);
+    mathProperties["e128"]     = Value::createNumberWithType(Math::E128, NumericType::FLOAT128);
+    mathProperties["e256"]     = Value::createNumberWithType(Math::E256, NumericType::FLOAT256);
+    mathProperties["e512"]     = Value::createNumberWithType(Math::E512, NumericType::FLOAT512);
+    mathProperties["e1024"]    = Value::createNumberWithType(Math::E1024, NumericType::FLOAT1024);
     builtinObject("math", mathProperties);
 
     std::unordered_map<std::string, Value> httpProperties;
@@ -1331,7 +1372,6 @@ Parser::Parser(
     scriptProperties["runner"] = stringToValue(runner);
     scriptProperties["int128"] = booleanToValue(JUSTC_INT128_SUPPORT);
     scriptProperties["uint128"] = booleanToValue(JUSTC_UINT128_SUPPORT);
-    scriptProperties["float128"] = booleanToValue(JUSTC_FLOAT128_SUPPORT);
     scriptProperties["Luau"] = booleanToValue(JUSTC_LUAU_SUPPORT);
     scriptProperties["JUSTB"] = booleanToValue(JUSTC_JUSTB_SUPPORT);
     builtinObject("script", scriptProperties);
@@ -3677,6 +3717,15 @@ Value Parser::executeFunction(const builtinFunction& funcName_, const std::vecto
         case "math.sqrt1_2"_h: return numberToValue(Math::SQRT1_2);
         case "math.log2e"_h: return numberToValue(Math::LOG2E);
         case "math.log10e"_h: return numberToValue(Math::LOG10E);
+
+        case "math.pi128"_h: return Value::createNumberWithType(Math::PI128, NumericType::FLOAT128);
+        case "math.pi256"_h: return Value::createNumberWithType(Math::PI256, NumericType::FLOAT256);
+        case "math.pi512"_h: return Value::createNumberWithType(Math::PI512, NumericType::FLOAT512);
+        case "math.pi1024"_h: return Value::createNumberWithType(Math::PI1024, NumericType::FLOAT1024);
+        case "math.e128"_h: return Value::createNumberWithType(Math::E128, NumericType::FLOAT128);
+        case "math.e256"_h: return Value::createNumberWithType(Math::E256, NumericType::FLOAT256);
+        case "math.e512"_h: return Value::createNumberWithType(Math::E512, NumericType::FLOAT512);
+        case "math.e1024"_h: return Value::createNumberWithType(Math::E1024, NumericType::FLOAT1024);
 
         case "valueof"_h: return functionVALUE(args);
         case "String"_h: return functionSTRING(args);
@@ -6354,12 +6403,6 @@ unsigned long long Parser::parseToUInt128(const std::string& str) {
     }
 }
 #endif
-#if JUSTC_FLOAT128_SUPPORT
-__float128 Parser::parseToFloat128(const std::string& str) {
-    std::string cleaned = stripUnderscores(str);
-    return strtoflt128(cleaned.c_str(), nullptr);
-}
-#endif
 Value Parser::applyCPPTypeDeclaration(const Value value, const std::string& cpptype, const DataType typeDecl, bool doExecute, const bool canBeDefault, const uint8_t isID) {
     if (cpptype == DEFAULT_CPP_TYPE) return value;
 
@@ -6458,16 +6501,30 @@ Value Parser::applyCPPTypeDeclaration(const Value value, const std::string& cppt
                     float num = std::stof(cleaned);
                     result = Value::createNumberWithType(num, NumericType::FLOAT32);
                 } else if (cpptype == "float128") {
-                    #if JUSTC_FLOAT128_SUPPORT
-                        __float128 num = parseToFloat128(cleaned);
-                        result = Value::createNumberWithType(num, NumericType::FLOAT128);
-                    #else
-                        long double num = std::stold(cleaned);
-                        result = Value::createNumberWithType(num, NumericType::BIGNUM);
-                    #endif
+                    float128_t num(cleaned);
+                    result = Value::createNumberWithType(num, NumericType::FLOAT128);
+                } else if (cpptype == "float256") {
+                    float256_t num(cleaned);
+                    result = Value::createNumberWithType(num, NumericType::FLOAT256);
+                } else if (cpptype == "float512") {
+                    float512_t num(cleaned);
+                    result = Value::createNumberWithType(num, NumericType::FLOAT512);
+                } else if (cpptype == "float1024") {
+                    float1024_t num(cleaned);
+                    result = Value::createNumberWithType(num, NumericType::FLOAT1024);
+                } else if (cpptype == "float64") {
+                    float16_t num(cleaned);
+                    result = Value::createNumberWithType(num, NumericType::FLOAT16);
+                } else if (cpptype == "bfloat64") {
+                    bfloat16_t num(cleaned);
+                    result = Value::createNumberWithType(num, NumericType::BFLOAT16);
                 } else { // float64
-                    double num = std::stod(cleaned);
-                    result = Value::createNumberWithType(num, NumericType::FLOAT64);
+                    try {
+                        double num = std::stod(cleaned);
+                        result = Value::createNumberWithType(num, NumericType::FLOAT64);
+                    } catch (...) {
+                        result = Value::createNumberWithType(value.number_value, NumericType::FLOAT64);
+                    }
                 }
                 break;
             }
@@ -6704,7 +6761,13 @@ Value Parser::functionTYPEID(const std::vector<Value>& args) {
 Value Parser::functionTYPEOF(const std::vector<Value>& args) {
     if (args.empty()) return stringToValue("unknown");
 
-    return stringToValue(dataTypeToString(args[0].type));
+    std::stringstream ss;
+    ss << dataTypeToString(args[0].type);
+    if (args[0].type == DataType::NUMBER) {
+        ss << " (" << args[0].numericTypeString() << ")";
+    }
+
+    return stringToValue(ss.str());
 }
 
 Value Parser::functionECHO(const std::vector<Value>& args) {

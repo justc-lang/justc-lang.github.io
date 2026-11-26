@@ -63,4 +63,6 @@ const std::vector<std::string> keywords = {
     "uint8", "uint16", "uint32", "uint64",
     "uint128", "float32", "float64", "float128",
     "cuint8", "cuint16", "cuint32", "cuint64",
+    "float256", "float512", "float1024", "float16",
+    "bfloat16",
 };

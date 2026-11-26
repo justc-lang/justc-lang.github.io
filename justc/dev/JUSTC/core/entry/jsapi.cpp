@@ -55,6 +55,11 @@ EM_JS(void, console_error, (const char* what), {
     console.error('[JUSTC]', UTF8ToString(what));
 });
 
+#include <cmath>
+extern "C" __attribute__((used)) long double scalbnl(long double x, int n) {
+    return static_cast<long double>(std::scalbn(static_cast<double>(x), n));
+}
+
 #endif
 
 std::string outputString(const std::string& mode, const ParseResult& result) {
@@ -638,7 +643,7 @@ void clearClasses() {
 }
 
 int freePointer(const char* raw_pointer_str) {
-    if (raw_pointer_str) return 0;
+    if (!raw_pointer_str) return 0;
 
     std::lock_guard<std::mutex> lock(globalParserMutex);
     ensureGlobalParser();
