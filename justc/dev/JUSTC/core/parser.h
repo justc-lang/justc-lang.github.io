@@ -48,6 +48,7 @@ SOFTWARE.
     #include <cereal/types/memory.hpp>
 #endif
 #include <optional>
+#include <boost/multiprecision/cpp_bin_float.hpp>
 
 #ifdef _MSC_VER
     #define JUSTC_HAS_INT128 0
