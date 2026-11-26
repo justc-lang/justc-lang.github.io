@@ -1109,6 +1109,13 @@ void Lexer::tokenize() {
             continue;
         }
 
+        if (ch == '!' && peek() == '!' && peek(2) == '!') { // shortens logical NOT chains
+            addDollarBefore();
+            tokens.push_back(ParserToken{"!", "!", position});
+            position += 3;
+            continue;
+        }
+
         if (ch == '=' || ch == '?' || ch == '!' || ch == '<' ||
             ch == '>' || ch == '|' || ch == '&' || ch == '+' ||
             ch == '*' || ch == '/' || ch == '%' || ch == '^') {

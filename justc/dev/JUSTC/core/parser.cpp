@@ -4047,13 +4047,13 @@ Value Parser::executeFunction(const builtinFunction& funcName_, const std::vecto
             case "Binary::fromDataURL"_h: return Binary::FromDataURL(args);
             case "Binary::data"_h: return Binary::Data(args);
 
-            case "math.abs"_h: return Value::createNumber(Math::Abs(inpnum));
-            case "math.acos"_h: return Value::createNumber(Math::Acos(inpnum));
-            case "math.asin"_h: return Value::createNumber(Math::Asin(inpnum));
-            case "math.atan"_h: return Value::createNumber(Math::Atan(inpnum));
+            case "math.abs"_h: return Math::Abs(args[0]);
+            case "math.acos"_h: return Math::Acos(args[0]);
+            case "math.asin"_h: return Math::Asin(args[0]);
+            case "math.atan"_h: return Math::Atan(args[0]);
             case "math.atan2"_h: return Value::createNumber(Math::Atan2(inpnum, args[1].number_value));
-            case "math.ceil"_h: return Value::createNumber(Math::Ceil(inpnum));
-            case "math.cos"_h: return Value::createNumber(Math::Cos(inpnum));
+            case "math.ceil"_h: return Math::Ceil(args[0]);
+            case "math.cos"_h: return Math::Cos(args[0]);
             case "math.clamp"_h: return Value::createNumber(Math::Clamp(inpnum, args[1].number_value, args[2].number_value));
             case "math.cube"_h: return Value::createNumber(inpnum * inpnum * inpnum);
             case "math.double"_h: return Value::createNumber(inpnum * 2);
@@ -4064,7 +4064,7 @@ Value Parser::executeFunction(const builtinFunction& funcName_, const std::vecto
                 double outVal = static_cast<double>(res);
                 return Value::createNumber(outVal);
             }
-            case "math.floor"_h: return Value::createNumber(Math::Floor(inpnum));
+            case "math.floor"_h: return Math::Floor(args[0]);
             case "math.hypot"_h: return Value::createNumber(Math::Hypot(inpnum, args[1].number_value));
             case "math.isPrime"_h: {
                 int intValue = static_cast<int>(std::round(inpnum));
@@ -4076,12 +4076,12 @@ Value Parser::executeFunction(const builtinFunction& funcName_, const std::vecto
             case "math.max"_h: return Value::createNumber(Math::Max(values2numbers(args)));
             case "math.min"_h: return Value::createNumber(Math::Min(values2numbers(args)));
             case "math.pow"_h: return Value::createNumber(Math::Pow(inpnum, args[1].number_value));
-            case "math.round"_h: return Value::createNumber(Math::Round(inpnum));
+            case "math.round"_h: return Math::Round(args[0]);
             case "math.sign"_h: return Value::createNumber(Math::Sign(inpnum));
-            case "math.sin"_h: return Value::createNumber(Math::Sin(inpnum));
+            case "math.sin"_h: return Math::Sin(args[0]);
             case "math.sqrt"_h: return Value::createNumber(Math::Sqrt(inpnum));
             case "math.square"_h: return Value::createNumber(inpnum * inpnum);
-            case "math.tan"_h: return Value::createNumber(Math::Tan(inpnum));
+            case "math.tan"_h: return Math::Tan(args[0]);
             case "math.toDegrees"_h: return Value::createNumber(Math::ToDegrees(inpnum));
             case "math.toRadians"_h: return Value::createNumber(Math::ToRadians(inpnum));
 
@@ -5797,7 +5797,7 @@ Value Parser::evaluateExpression(const Value& left, const std::string& op, const
 
     else if (op == "~=" || op == "!~=") {
         if (Utility::checkNumbers(left, right)) {
-            result = booleanToValue(Math::Round(left.toNumber()) == Math::Round(right.toNumber()));
+            result = booleanToValue(std::round(left.toNumber()) == std::round(right.toNumber()));
         } else if (left.type == DataType::STRING && right.type == DataType::STRING) {
             result = booleanToValue(Unicode::EqualsIgnoreCase(left.toString(), right.toString()));
         } else if (left.type == DataType::STRING && right.type == DataType::UNKNOWN) {

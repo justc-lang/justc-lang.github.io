@@ -34,62 +34,21 @@ std::mt19937 Math::gen(Math::rd());
 
 double Math::Min(const std::vector<double>& values) {
     if (values.empty()) {
-        throw std::invalid_argument("Math::Min: vector cannot be empty");
+        throw std::invalid_argument("math.min: vector cannot be empty");
     }
     return *std::min_element(values.begin(), values.end());
 }
 
 double Math::Max(const std::vector<double>& values) {
     if (values.empty()) {
-        throw std::invalid_argument("Math::Max: vector cannot be empty");
+        throw std::invalid_argument("math.max: vector cannot be empty");
     }
     return *std::max_element(values.begin(), values.end());
-}
-
-double Math::Abs(double x) {
-    return std::abs(x);
-}
-
-double Math::Sin(double x) {
-    return std::sin(x);
-}
-
-double Math::Cos(double x) {
-    return std::cos(x);
-}
-
-double Math::Tan(double x) {
-    return std::tan(x);
-}
-
-double Math::Asin(double x) {
-    return std::asin(x);
-}
-
-double Math::Acos(double x) {
-    return std::acos(x);
-}
-
-double Math::Atan(double x) {
-    return std::atan(x);
 }
 
 double Math::Atan2(double y, double x) {
     return std::atan2(y, x);
 }
-
-double Math::Ceil(double x) {
-    return std::ceil(x);
-}
-
-double Math::Floor(double x) {
-    return std::floor(x);
-}
-
-double Math::Round(double x) {
-    return std::round(x);
-}
-
 double Math::Random() {
     std::uniform_real_distribution<double> dis(0.0, 1.0);
     return dis(gen);
@@ -97,7 +56,7 @@ double Math::Random() {
 
 double Math::Random(double min, double max) {
     if (min >= max) {
-        throw std::invalid_argument("Math::Random: max must be greater than min");
+        throw std::invalid_argument("math.random: max must be greater than min");
     }
     std::uniform_real_distribution<double> dis(min, max);
     return dis(gen);
@@ -109,7 +68,7 @@ double Math::Pow(double base, double exponent) {
 
 double Math::Sqrt(double x) {
     if (x < 0) {
-        throw std::invalid_argument("Math::Sqrt: cannot calculate square root of negative number");
+        throw std::invalid_argument("math.sqrt: cannot calculate square root of negative number");
     }
     return std::sqrt(x);
 }
@@ -120,21 +79,21 @@ double Math::Exp(double x) {
 
 double Math::Log(double x) {
     if (x <= 0) {
-        throw std::invalid_argument("Math::Log: argument must be positive");
+        throw std::invalid_argument("math.log: argument must be positive");
     }
     return std::log(x);
 }
 
 double Math::Log10(double x) {
     if (x <= 0) {
-        throw std::invalid_argument("Math::Log10: argument must be positive");
+        throw std::invalid_argument("math.log10: argument must be positive");
     }
     return std::log10(x);
 }
 
 double Math::Clamp(double value, double min, double max) {
     if (min > max) {
-        throw std::invalid_argument("Math::Clamp: min cannot be greater than max");
+        throw std::invalid_argument("math.clamp: min cannot be greater than max");
     }
     return (value < min) ? min : (value > max) ? max : value;
 }
@@ -162,10 +121,10 @@ bool Math::IsPrime(int n) {
 
 long long Math::Factorial(int n) {
     if (n < 0) {
-        throw std::invalid_argument("Math::Factorial: argument cannot be negative");
+        throw std::invalid_argument("math.factorial: argument cannot be negative");
     }
     if (n > 20) {
-        throw std::invalid_argument("Math::Factorial: argument too large for long long");
+        throw std::invalid_argument("math.factorial: argument too large for long long");
     }
 
     long long result = 1;
