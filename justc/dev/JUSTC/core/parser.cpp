@@ -2417,6 +2417,99 @@ bool Parser::CanIgnoreNoAssignmentOperator() {
             match("Luau_i") || match("JavaScript_i") || match("JUSTC") || match("JUSTO") || 
             match("JUSTC_i") || match("JUSTO_i"));
 }
+Value Parser::typedNumberPPMM(const Value& var) {
+    std::string n = match("++") ? "1" : "-1";
+    switch (var.getNumericType()) {
+        case NumericType::FLOAT16:
+            return Value::createNumberWithType(var.getNumericValue<float16_t>() + float16_t(n), NumericType::FLOAT16);
+        case NumericType::BFLOAT16:
+            return Value::createNumberWithType(var.getNumericValue<bfloat16_t>() + bfloat16_t(n), NumericType::BFLOAT16);
+        case NumericType::FLOAT32:
+            return Value::createNumberWithType(var.getNumericValue<float>() + (match("++") ? 1.0f : -1.0f), NumericType::FLOAT32);
+        case NumericType::FLOAT128:
+            return Value::createNumberWithType(var.getNumericValue<float128_t>() + float128_t(n), NumericType::FLOAT128);
+        case NumericType::FLOAT256:
+            return Value::createNumberWithType(var.getNumericValue<float256_t>() + float256_t(n), NumericType::FLOAT256);
+        case NumericType::FLOAT512:
+            return Value::createNumberWithType(var.getNumericValue<float512_t>() + float512_t(n), NumericType::FLOAT512);
+        case NumericType::FLOAT1024:
+            return Value::createNumberWithType(var.getNumericValue<float1024_t>() + float1024_t(n), NumericType::FLOAT1024);
+        case NumericType::INT8:
+            return Value::createNumberWithType(var.getNumericValue<int8_t>() + (match("++") ? INT8_C(1) : INT8_C(-1)), NumericType::INT8);
+        case NumericType::INT16:
+            return Value::createNumberWithType(var.getNumericValue<int16_t>() + (match("++") ? INT16_C(1) : INT16_C(-1)), NumericType::INT16);
+        case NumericType::INT32:
+            return Value::createNumberWithType(var.getNumericValue<int32_t>() + (match("++") ? INT32_C(1) : INT32_C(-1)), NumericType::INT32);
+        case NumericType::INT64:
+            return Value::createNumberWithType(var.getNumericValue<int64_t>() + (match("++") ? INT64_C(1) : INT64_C(-1)), NumericType::INT64);
+        case NumericType::UINT8:
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint8_t>() + UINT8_C(1)
+            ) : (
+                var.getNumericValue<uint8_t>() - UINT8_C(1)
+            ), NumericType::UINT8);
+        case NumericType::UINT16:
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint16_t>() + UINT16_C(1)
+            ) : (
+                var.getNumericValue<uint16_t>() - UINT16_C(1)
+            ), NumericType::UINT16);
+        case NumericType::UINT32:
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint32_t>() + UINT32_C(1)
+            ) : (
+                var.getNumericValue<uint32_t>() - UINT32_C(1)
+            ), NumericType::UINT32);
+        case NumericType::UINT64:
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint64_t>() + UINT64_C(1)
+            ) : (
+                var.getNumericValue<uint64_t>() - UINT64_C(1)
+            ), NumericType::UINT64);
+        case NumericType::CUINT8:
+            if (
+                (match("++") && var.getNumericValue<uint8_t>() >= std::numeric_limits<uint8_t>::max()) ||
+                (match("--") && var.getNumericValue<uint8_t>() <= 0)
+            ) return var;
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint8_t>() + UINT8_C(1)
+            ) : (
+                var.getNumericValue<uint8_t>() - UINT8_C(1)
+            ), NumericType::CUINT8);
+        case NumericType::CUINT16:
+            if (
+                (match("++") && var.getNumericValue<uint16_t>() >= std::numeric_limits<uint16_t>::max()) ||
+                (match("--") && var.getNumericValue<uint16_t>() <= 0)
+            ) return var;
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint16_t>() + UINT16_C(1)
+            ) : (
+                var.getNumericValue<uint16_t>() - UINT16_C(1)
+            ), NumericType::CUINT16);
+        case NumericType::CUINT32:
+            if (
+                (match("++") && var.getNumericValue<uint32_t>() >= std::numeric_limits<uint32_t>::max()) ||
+                (match("--") && var.getNumericValue<uint32_t>() <= 0)
+            ) return var;
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint32_t>() + UINT32_C(1)
+            ) : (
+                var.getNumericValue<uint32_t>() - UINT32_C(1)
+            ), NumericType::CUINT32);
+        case NumericType::CUINT64:
+            if (
+                (match("++") && var.getNumericValue<uint64_t>() >= std::numeric_limits<uint64_t>::max()) ||
+                (match("--") && var.getNumericValue<uint64_t>() <= 0)
+            ) return var;
+            return Value::createNumberWithType(match("++") ? (
+                var.getNumericValue<uint64_t>() + UINT64_C(1)
+            ) : (
+                var.getNumericValue<uint64_t>() - UINT64_C(1)
+            ), NumericType::CUINT64);
+        default: // float64, none
+            return Value::createNumberWithType(var.getNumericValue<double>() + (match("++") ? 1.0 : -1.0), NumericType::FLOAT64);
+    }
+}
 ASTNode Parser::parseVariableDeclaration(bool doExecute, bool constant, bool local, bool global) {
     std::string cpptype = DEFAULT_CPP_TYPE;
     if (isCPPType() || isStruct(currentToken().value).first || isClass(currentToken().value).first) {
@@ -2568,9 +2661,13 @@ ASTNode Parser::parseVariableDeclaration(bool doExecute, bool constant, bool loc
         
         Value val = var;
         if (match("--") || match("++")) {
-            val = Value::createNumber(var.toNumber() + (
-                match("++") ? 1 : -1
-            ));
+            if (!static_cast<bool>(var.numeric_data)) {
+                val = Value::createNumber(var.toNumber() + (
+                    match("++") ? 1 : -1
+                ));
+            } else {
+                val = typedNumberPPMM(var);
+            }
         } else if (match("#")) {
             val = evaluateLengthOperator(var);
         } else if (match("!")) {
@@ -2669,9 +2766,13 @@ Value Parser::parseExpression(bool doExecute, bool identifierMode, bool doFuncti
     if (match("--") || match("++") || match("#") || match("!") || match("~") || match("$") || match("##") || match(".#")) { // unary assignment
         Value val = result;
         if (match("--") || match("++")) {
-            val = Value::createNumber(result.toNumber() + (
-                match("++") ? 1 : -1
-            ));
+            if (!static_cast<bool>(result.numeric_data)) {
+                val = Value::createNumber(result.toNumber() + (
+                    match("++") ? 1 : -1
+                ));
+            } else {
+                val = typedNumberPPMM(result);
+            }
         } else if (match("#")) {
             val = evaluateLengthOperator(result);
         } else if (match("!")) {
@@ -3129,6 +3230,46 @@ Value Parser::astNodeToValue(const ASTNode& node) {
     }
 }
 
+Value Parser::parseNumberWithType(const std::string& type, const std::string& value) {
+    switch (hash_fnv1a(type)) {
+        case "big"_h: return Value::createNumberWithType(parseFloat(value), NumericType::BIGNUM);
+
+        case "i8"_h: return Value::createNumberWithType(parseInt<int8_t>(value), NumericType::INT8);
+        case "i16"_h: return Value::createNumberWithType(parseInt<int16_t>(value), NumericType::INT16);
+        case "i32"_h: return Value::createNumberWithType(parseInt<int32_t>(value), NumericType::INT32);
+        case "i64"_h: return Value::createNumberWithType(parseInt<int64_t>(value), NumericType::INT64);
+
+        case "u8"_h: return Value::createNumberWithType(parseUInt<uint8_t>(value), NumericType::UINT8);
+        case "u16"_h: return Value::createNumberWithType(parseUInt<uint16_t>(value), NumericType::UINT16);
+        case "u32"_h: return Value::createNumberWithType(parseUInt<uint32_t>(value), NumericType::UINT32);
+        case "u64"_h: return Value::createNumberWithType(parseUInt<uint64_t>(value), NumericType::UINT64);
+
+        case "c8"_h: return Value::createNumberWithType(parseCUInt<uint8_t>(value), NumericType::CUINT8);
+        case "c16"_h: return Value::createNumberWithType(parseCUInt<uint16_t>(value), NumericType::CUINT16);
+        case "c32"_h: return Value::createNumberWithType(parseCUInt<uint32_t>(value), NumericType::CUINT32);
+        case "c64"_h: return Value::createNumberWithType(parseCUInt<uint64_t>(value), NumericType::CUINT64);
+
+        case "f16"_h: return Value::createNumberWithType(float16_t(value), NumericType::FLOAT16);
+        case "b16"_h: return Value::createNumberWithType(bfloat16_t(value), NumericType::BFLOAT16);
+        case "f32"_h: return Value::createNumberWithType(static_cast<float>(parseFloat(value)), NumericType::FLOAT32);
+        case "f64"_h: return Value::createNumberWithType(static_cast<double>(parseFloat(value)), NumericType::FLOAT64);
+        case "f128"_h: return Value::createNumberWithType(float128_t(value), NumericType::FLOAT128);
+        case "f256"_h: return Value::createNumberWithType(float256_t(value), NumericType::FLOAT256);
+        case "f512"_h: return Value::createNumberWithType(float512_t(value), NumericType::FLOAT512);
+        case "f1024"_h: return Value::createNumberWithType(float1024_t(value), NumericType::FLOAT1024);
+
+        default: throw std::runtime_error("Unsupported numeric type: " + type);
+    }
+}
+bool Parser::isNumberWithType() {
+    return (match("big")
+        || match("i8") || match("i16") || match("i32") || match("i64") || match("i128") || match("i256") || match("i512") || match("i1024")
+        || match("u8") || match("u16") || match("u32") || match("u64") || match("u128") || match("u256") || match("u512") || match("u1024")
+        || match("c8") || match("c16") || match("c32") || match("c64") || match("c128") || match("c256") || match("c512") || match("c1024")
+        || match("b16")|| match("f16") || match("f32") || match("f64") || match("f128") || match("f256") || match("f512") || match("f1024")
+    );
+}
+
 Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
     if (match("number")) {
         std::string numStr = currentToken().value;
@@ -3464,6 +3605,14 @@ Value Parser::parsePrimary(bool doExecute, bool doFunctionCall) {
         advance();
         std::vector<Value> args = parseArguments(doExecute);
         return executeFunction(hash, args, startPos);
+    }
+    else if (isNumberWithType()) {
+        std::string type = currentToken().type;
+        std::string value = currentToken().value;
+        Value result = parseNumberWithType(type, value);
+        advance();
+        result.name = value;
+        return result;
     }
 
     throw std::runtime_error("Invalid or unexpected token \"" + currentToken().value + "\" at " + Utility::position(currentToken().start, input));
@@ -6212,9 +6361,7 @@ Value Parser::applyTypeDeclaration(const Value value, const ASTNode node) {
                 case DataType::BINARY:
                     result = Utility::convert(result, typeDeclaration);
                     break;
-                default:
-                    throw typeDeclarationError(result.type, typeDeclaration, node);
-                    break;
+                default: throw typeDeclarationError(result.type, typeDeclaration, node);
             }
             break;
         case DataType::STRING:
@@ -6250,15 +6397,21 @@ Value Parser::applyTypeDeclaration(const Value value, const ASTNode node) {
                 case DataType::NINFINITE:
                     result.boolean_value = false;
                     break;
-                default:
-                    throw typeDeclarationError(result.type, typeDeclaration, node);
-                    break;
+                default: throw typeDeclarationError(result.type, typeDeclaration, node);
             }
             result.type = DataType::BOOLEAN;
             break;
-        default:
-            throw typeDeclarationError(result.type, typeDeclaration, node);
-            break;
+        case DataType::BIGNUM:
+            switch (result.type) {
+                case DataType::NUMBER:
+                case DataType::HEXADECIMAL:
+                case DataType::OCTAL:
+                case DataType::BINARY:
+                    result = Value::createNumberWithType(parseFloat(value.name), NumericType::BIGNUM);
+                    break;
+                default: throw typeDeclarationError(result.type, typeDeclaration, node);
+            }
+        default: throw typeDeclarationError(result.type, typeDeclaration, node);
     }
     return result;
 }

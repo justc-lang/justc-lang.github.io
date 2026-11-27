@@ -1107,6 +1107,100 @@ private:
 
     Value getIdentifier();
 
+    template<typename T>
+    T parseInt(const std::string& str) {
+        long long value;
+
+        try {
+            size_t pos;
+            value = std::stoll(str, &pos);
+
+            if (pos != str.length()) {
+                throw std::runtime_error("Invalid integer:" + str);
+            }
+        } catch (...) {
+            throw std::runtime_error("Invalid integer: " + str);
+        }
+
+        if (
+            value < static_cast<long long>(
+                std::numeric_limits<T>::min()
+            ) ||
+            value > static_cast<long long>(
+                std::numeric_limits<T>::max()
+            )
+        ) {
+            throw std::runtime_error(
+                "Integer overflow: " + str
+            );
+        }
+
+        return static_cast<T>(value);
+    }
+    template<typename T>
+    T parseUInt(const std::string& str) {
+        unsigned long long value;
+
+        try {
+            size_t pos;
+            value = std::stoull(str, &pos);
+
+            if (pos != str.length()) {
+                throw std::runtime_error("Invalid unsigned integer: " + str);
+            }
+        } catch (...) {
+            throw std::runtime_error("Invalid unsigned integer: " + str);
+        }
+
+        if (value > static_cast<unsigned long long>(
+            std::numeric_limits<T>::max()
+        )) {
+            throw std::runtime_error(
+                "Unsigned integer overflow: " + str
+            );
+        }
+
+        return static_cast<T>(value);
+    }
+    long double parseFloat(const std::string& str) {
+        try {
+            size_t pos;
+            long double value = std::stold(str, &pos);
+
+            if (pos != str.length()) {
+                throw std::runtime_error("Invalid floating-point number: " + str);
+            }
+
+            return value;
+        } catch (...) {
+            throw std::runtime_error(
+                "Invalid floating-point number: " + str
+            );
+        }
+    }
+    template<typename T>
+    T parseCUInt(const std::string& str) {
+        try {
+            long double value = parseFloat(str);
+
+            value = std::clamp(
+                value,
+                0.0L,
+                static_cast<long double>(
+                    std::numeric_limits<T>::max()
+                )
+            );
+
+            return static_cast<T>(value);
+        } catch (...) {
+            throw std::runtime_error(
+                "Invalid clamped unsigned integer: " + str
+            );
+        }
+    }
+    Value parseNumberWithType(const std::string& type, const std::string& value);
+    bool isNumberWithType();
+
     Value parsePrimary(bool doExecute, bool doFunctionCall = true);
     Value parseConditional(bool doExecute, bool identifierMode = false, bool doFunctionCall = true, bool ignoreColon = false);
     Value parseBitwiseOR(bool doExecute, bool identifierMode = false, bool doFunctionCall = true, bool ignoreColon = false);
@@ -1149,6 +1243,7 @@ private:
     bool CanIgnoreNoAssignmentOperator();
     Value makeValue(Value value, bool b);
     ASTNode parseGlobal(bool doExecute, bool constant = false);
+    Value typedNumberPPMM(const Value& var);
     ASTNode parseVariableDeclaration(bool doExecute, bool constant = false, bool local = false, bool global = false);
     ASTNode parseCommand(bool doExecute);
     ASTNode parseScopeCommand();

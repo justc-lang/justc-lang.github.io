@@ -196,6 +196,7 @@ DataType Utility::typeDeclaration2dataType(const std::string& typeDeclaration, c
         { "element",     DataType::JSX_ELEMENT  },
         { "map",         DataType::MAP          },
         { "set",         DataType::SET          },
+        { "bignum",      DataType::BIGNUM       },     { "big",  DataType::BIGNUM       },
         { "auto",        DataType::UNKNOWN      },
     };
 
